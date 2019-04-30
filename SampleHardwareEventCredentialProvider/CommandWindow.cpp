@@ -166,7 +166,7 @@ BOOL CCommandWindow::GetConnectedStatus()
 			//声名变量
 			MySqlConn DbTconn;
 			bool isOK;
-			char strSQL[200];//SQL insert用到
+			char strSQL[500];//SQL insert用到
 			char * chSQL = "select * from CarTable where CarNumber='%s";
 			//-----------------------------------
 			string strGetMachineInfo = "";// , tempSC = "";
