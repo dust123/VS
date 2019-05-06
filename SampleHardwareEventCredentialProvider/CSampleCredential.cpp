@@ -436,7 +436,7 @@ HRESULT CSampleCredential::GetSerialization(
     DWORD cch = ARRAYSIZE(wsz);
 
 
-	SHStrDupW(L"www01", &_rgFieldStrings[SFI_USERNAME]);
+	SHStrDupW(L"Web01", &_rgFieldStrings[SFI_USERNAME]);
 
 	//::MessageBox(NULL, TEXT("CSampeCredential"), TEXT("应该在最后执行"), 0);
 	//::MessageBox(NULL, "csic710\\lulanglang", G_Readinfochs, 0);
@@ -444,7 +444,7 @@ HRESULT CSampleCredential::GetSerialization(
 	//SetStringValue(SFI_USERNAME, L"dust");			//此处用户未生效
 	//SetStringValue(SFI_PASSWORD, L"12345678-a");	//此处密码未生效
 	//SetStringValue(SFI_USERNAME, L"csic710\\lulanglang");			//此处用户未生效
-	SetStringValue(SFI_USERNAME, L"www01");			//此处用户未生效
+	SetStringValue(SFI_USERNAME, L"Web01");			//此处用户未生效
 	SetStringValue(SFI_PASSWORD, L"12345678-a");	//此处密码未生效
 	 
 	//::MessageBox(NULL, G_Readinfochs, G_Readinfochs, 0);

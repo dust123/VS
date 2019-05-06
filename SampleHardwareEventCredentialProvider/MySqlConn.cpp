@@ -33,7 +33,7 @@ bool MySqlConn::initConnection()
 	}
 }
 
-bool MySqlConn::user_query(char *chSQL, string strSQL)
+bool MySqlConn::user_query(string strSQL)
 {
 	 
 	char query[255];
@@ -87,6 +87,7 @@ bool MySqlConn::user_query(char *chSQL, string strSQL)
 		}
 		else 
 		{
+			GetCarNumber = strSQL.c_str();
 			//return "未查到此卡信息";
 			return false;
 		}

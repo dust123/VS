@@ -36,7 +36,7 @@ public:
 	MYSQL m_sqlCon;  //连接mysql，数据库  
 
 	bool initConnection();
-	bool user_query(char *chSQL,string strSQL);
+	bool user_query(string strSQL);
 	bool user_insert(char *chSQL);
 	void user_update();
 	void user_delete();

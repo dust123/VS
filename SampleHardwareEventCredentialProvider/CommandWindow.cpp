@@ -167,7 +167,7 @@ BOOL CCommandWindow::GetConnectedStatus()
 			MySqlConn DbTconn;
 			bool isOK;
 			char strSQL[500];//SQL insert用到
-			char * chSQL = "select * from CarTable where CarNumber='%s";
+			//char * chSQL = "select * from CarTable where CarNumber='%s";
 			//-----------------------------------
 			string strGetMachineInfo = "";// , tempSC = "";
 			char chGetMachineInfo[250];
@@ -178,7 +178,7 @@ BOOL CCommandWindow::GetConnectedStatus()
 			//G_Readinfochs;
 			isOK = DbTconn.initConnection();
 			//::MessageBox(NULL, Readinfo.c_str(), Readinfo.c_str(), 0);
-			isOK = DbTconn.user_query(chSQL, Readinfo);
+			isOK = DbTconn.user_query(Readinfo);
 			if (isOK)//查到了
 			{ 
 				//--------------------------------------------
@@ -191,7 +191,7 @@ BOOL CCommandWindow::GetConnectedStatus()
 				sqlIP = strtok(NULL, "^");
 				sqlMAC = strtok(NULL, "^");
 
-				::MessageBox(NULL, DbTconn.GetCarNumber.c_str(), DbTconn.GetUserNumber.c_str(), 0);
+				//::MessageBox(NULL, DbTconn.GetCarNumber.c_str(), DbTconn.GetUserNumber.c_str(), 0);
 				//--------------------------------------------
 				sprintf_s(strSQL, sizeof(strSQL), "insert into loginTable(CarNumber,UserName, DTime,MachineName,MachineIP,MachineMAC) values(\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\");", DbTconn.GetCarNumber.c_str(), DbTconn.GetUserNumber.c_str(), sqlTime, sqlMachineName, sqlIP, sqlMAC );
 				//cout << "strSQL: " << strSQL << endl;
