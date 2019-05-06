@@ -435,16 +435,20 @@ HRESULT CSampleCredential::GetSerialization(
     WCHAR wsz[MAX_COMPUTERNAME_LENGTH+1];
     DWORD cch = ARRAYSIZE(wsz);
 
-
-	SHStrDupW(L"Web01", &_rgFieldStrings[SFI_USERNAME]);
-
+ 
+	std::wstring widstr = std::wstring(strUser.begin(), strUser.end());
+	const wchar_t *wtUser = widstr.c_str();
+ 
+	//SHStrDupW(L"Web01", &_rgFieldStrings[SFI_USERNAME]);
+	SHStrDupW(wtUser, &_rgFieldStrings[SFI_USERNAME]);
 	//::MessageBox(NULL, TEXT("CSampeCredential"), TEXT("应该在最后执行"), 0);
 	//::MessageBox(NULL, "csic710\\lulanglang", G_Readinfochs, 0);
 	//::MessageBox(NULL, G_Readinfochs, G_Readinfochs, 0);
 	//SetStringValue(SFI_USERNAME, L"dust");			//此处用户未生效
 	//SetStringValue(SFI_PASSWORD, L"12345678-a");	//此处密码未生效
 	//SetStringValue(SFI_USERNAME, L"csic710\\lulanglang");			//此处用户未生效
-	SetStringValue(SFI_USERNAME, L"Web01");			//此处用户未生效
+	//SetStringValue(SFI_USERNAME, L"Web01");			//此处用户未生效
+	SetStringValue(SFI_USERNAME, wtUser);			//此处用户未生效
 	SetStringValue(SFI_PASSWORD, L"12345678-a");	//此处密码未生效
 	 
 	//::MessageBox(NULL, G_Readinfochs, G_Readinfochs, 0);

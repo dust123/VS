@@ -28,6 +28,12 @@
 
 //mysql
 #include "MySqlConn.h"
+
+//map
+#include <map>
+
+
+
 //--------------- 
 #ifndef GLOBAL_H
 #define GLOBAL_H 
@@ -94,13 +100,70 @@ HRESULT CCommandWindow::Initialize(CSampleProvider *pProvider)//比_InitInstance(
 
 	//system("sc stop atest");
 	//--------------------------------------------------------------------------------------------------------
+	//读配置文件
+	map<string, string> mapConfig;
+
+	ifstream configFile;
+	string path = "c:\\setting.conf";
+	configFile.open(path.c_str());
+	string str_line;
+	if (configFile.is_open())
+	{
+		//cout << "configFile is_open" << endl;
+		while (!configFile.eof())
+		{
+			getline(configFile, str_line);
+			if (str_line.find('#') == 0) //过滤掉注释信息，即如果首个字符为#就过滤掉这一行
+			{
+				continue;
+			}
+			size_t pos = str_line.find('=');
+			string str_key = str_line.substr(0, pos);
+			string str_value = str_line.substr(pos + 1);
+			//cout << "str_key is:" << str_key << endl;
+			//cout << "str_value is:" << str_value << endl;
+			mapConfig.insert(pair<string, string>(str_key, str_value));
+		}
+
+		//cout << "map is_open" << endl;
+		map<string, string>::iterator iter_configMap;
+		iter_configMap = mapConfig.find(string("Com"));
+
+		if (iter_configMap != mapConfig.end())
+		{
+			//cout << "path is:" << iter_configMap->second << endl;
+			strCom = iter_configMap->second;
+		}
+
+		iter_configMap = mapConfig.find(string("User"));
+		if (iter_configMap != mapConfig.end())
+		{
+			//cout << "path is:" << iter_configMap->second << endl;
+			strUser = iter_configMap->second;
+		}
+
+	}
+	else
+	{
+		::MessageBox(NULL, "读取配置文件出错", "错误", 0);
+		//cout << "Cannot open config file setting.ini, path: ";
+		exit(-1);
+	}
+
+
+	//--------------------------------------------------------------------------------------------------------
 	//先串口通信
 	//ComAsy SerialCom;
-	string a = "COM3";
-	LPCSTR Port = a.c_str();;// = "COM4"; 
-
-							 //stringToLPCWSTR(a)
-
+	LPCSTR Port;
+	if (strCom.length() != 0)
+	{
+		 Port = strCom.c_str();;// = "COM4"; 
+	}else{
+		::MessageBox(NULL, "读取串口配置文件出错", "错误COM", 0);
+		//cout << "Cannot open config file setting.ini, path: ";
+		exit(-1);
+	}
+	 
 	int SerialIN = 0;
 	SerialIN = SerialCom.InitCOM(Port);
 

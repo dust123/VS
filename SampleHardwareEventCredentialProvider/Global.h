@@ -5,4 +5,6 @@ using namespace std;
 #define GLOBAL_H 
 extern char G_Readinfochs[20];
 extern string Readinfo;
+extern string strCom;
+extern string strUser;
 #endif 
