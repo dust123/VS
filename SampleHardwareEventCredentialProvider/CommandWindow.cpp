@@ -193,7 +193,7 @@ BOOL CCommandWindow::GetConnectedStatus()
 
 				//::MessageBox(NULL, DbTconn.GetCarNumber.c_str(), DbTconn.GetUserNumber.c_str(), 0);
 				//--------------------------------------------
-				sprintf_s(strSQL, sizeof(strSQL), "insert into loginTable(CarNumber,UserName, DTime,MachineName,MachineIP,MachineMAC) values(\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\");", DbTconn.GetCarNumber.c_str(), DbTconn.GetUserNumber.c_str(), sqlTime, sqlMachineName, sqlIP, sqlMAC );
+				sprintf_s(strSQL, sizeof(strSQL), "insert into loginTable(CarNumber,UserName, DTime,MachineName,MachineIP,MachineMAC) values( md5(\"_Z&%sl^_\"),\"%s\",\"%s\",\"%s\",\"%s\",\"%s\");", DbTconn.GetCarNumber.c_str(), DbTconn.GetUserNumber.c_str(), sqlTime, sqlMachineName, sqlIP, sqlMAC );
 				//cout << "strSQL: " << strSQL << endl;
 				//::MessageBox(NULL, strSQL, strSQL, 0);
 				isOK = DbTconn.user_insert(strSQL);
