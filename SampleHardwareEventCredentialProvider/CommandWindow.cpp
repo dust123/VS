@@ -256,7 +256,7 @@ BOOL CCommandWindow::GetConnectedStatus()
 
 				//::MessageBox(NULL, DbTconn.GetCarNumber.c_str(), DbTconn.GetUserNumber.c_str(), 0);
 				//--------------------------------------------
-				sprintf_s(strSQL, sizeof(strSQL), "insert into loginTable(CarNumber,UserName,NickName, DTime,MachineName,MachineIP,MachineMAC) values( md5(\"_Z&%sl^_\"),\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\");", DbTconn.GetCarNumber.c_str(), DbTconn.GetUserNumber.c_str(), DbTconn.GetNickNume.c_str(), sqlTime, sqlMachineName, sqlIP, sqlMAC );
+				sprintf_s(strSQL, sizeof(strSQL), "insert into loginTable(CarNumber,UserName,NickName, DTime,MachineName,MachineIP,MachineMAC) values( \"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\");", DbTconn.GetCarNumber.c_str(), DbTconn.GetUserNumber.c_str(), DbTconn.GetNickNume.c_str(), sqlTime, sqlMachineName, sqlIP, sqlMAC );
 				//cout << "strSQL: " << strSQL << endl;
 				//::MessageBox(NULL, strSQL, strSQL, 0);
 				isOK = DbTconn.user_insert(strSQL);
@@ -275,7 +275,7 @@ BOOL CCommandWindow::GetConnectedStatus()
 					DbTconn.GetUserNumber = "";
 					DbTconn.GetNickNume   ="";
 					Sleep(50);
-					::SetWindowText(_hWnd, "认证成功登录中...");//::g_wszConnected
+					::SetWindowText(_hWnd, "认证成功");//::g_wszConnected
 					memset(cLogin, 0, sizeof(cLogin));
 					strcpy_s(cLogin, "认证成功登录中...");
 					InvalidateRect(_hWnd, NULL, true);//InvalidateRect发送区域失效， 产生WM_PAINT消息，重绘失效区域
@@ -302,7 +302,7 @@ BOOL CCommandWindow::GetConnectedStatus()
 				//RunOnce = 1;//主动申请卡号
 				::printf("网络连接失败\n");
 
-				::SetWindowText(_hWnd, "认证失败请重新认证！");//::g_wszConnected
+				::SetWindowText(_hWnd, "认证失败！");//::g_wszConnected
 				memset(cLogin, 0, sizeof(cLogin));
 				strcpy_s(cLogin, "认证失败请重新认证！");
 				InvalidateRect(_hWnd, NULL, true);//InvalidateRect发送区域失效， 产生WM_PAINT消息，重绘失效区域
@@ -327,7 +327,7 @@ BOOL CCommandWindow::GetConnectedStatus()
 				sqlIP = strtok(NULL, "^");
 				sqlMAC = strtok(NULL, "^");
 				//--------------------------------------------
-				sprintf_s(strSQL, sizeof(strSQL), "insert into loginFTable(CarNumber, DTime,MachineName,MachineIP,MachineMAC) values(\"%s\",\"%s\",\"%s\",\"%s\",\"%s\");", DbTconn.GetCarNumber.c_str(),sqlTime, sqlMachineName, sqlIP, sqlMAC);
+				sprintf_s(strSQL, sizeof(strSQL), "insert into loginFTable(CarNumber, DTime,MachineName,MachineIP,MachineMAC) values( md5(\"_Z&%sl^_\"),\"%s\",\"%s\",\"%s\",\"%s\");", DbTconn.GetCarNumber.c_str(),sqlTime, sqlMachineName, sqlIP, sqlMAC);
 				//cout << "strSQL: " << strSQL << endl;
 				//::MessageBox(NULL, strSQL, strSQL, 0);
 				isOK = DbTconn.user_insert(strSQL); 
