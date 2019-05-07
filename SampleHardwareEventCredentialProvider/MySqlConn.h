@@ -32,6 +32,7 @@ private:
 public:
 	string GetCarNumber;
 	string GetUserNumber;
+	string GetNickNume;
 	//初始化mysql  
 	MYSQL m_sqlCon;  //连接mysql，数据库  
 

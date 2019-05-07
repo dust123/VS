@@ -6,5 +6,5 @@ using namespace std;
 extern char G_Readinfochs[20];
 extern string Readinfo;
 extern string strCom;
-extern string strUser;
+extern string strUser; 
 #endif 

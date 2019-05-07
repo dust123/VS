@@ -77,8 +77,10 @@ bool MySqlConn::user_query(string strSQL)
 		{
 			sql_row = mysql_fetch_row(result);
 			cout << "ÓÃ»§Ãû£º " << sql_row[2] << endl;
-			GetCarNumber = sql_row[1];
+
+			GetCarNumber  = sql_row[1];
 			GetUserNumber = sql_row[2];
+			GetNickNume   = sql_row[3];
 			//::MessageBox(NULL, sql_row[2], sql_row[2], 0);
 			if (result != NULL)
 				mysql_free_result(result);

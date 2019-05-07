@@ -256,7 +256,7 @@ BOOL CCommandWindow::GetConnectedStatus()
 
 				//::MessageBox(NULL, DbTconn.GetCarNumber.c_str(), DbTconn.GetUserNumber.c_str(), 0);
 				//--------------------------------------------
-				sprintf_s(strSQL, sizeof(strSQL), "insert into loginTable(CarNumber,UserName, DTime,MachineName,MachineIP,MachineMAC) values( md5(\"_Z&%sl^_\"),\"%s\",\"%s\",\"%s\",\"%s\",\"%s\");", DbTconn.GetCarNumber.c_str(), DbTconn.GetUserNumber.c_str(), sqlTime, sqlMachineName, sqlIP, sqlMAC );
+				sprintf_s(strSQL, sizeof(strSQL), "insert into loginTable(CarNumber,UserName,NickName, DTime,MachineName,MachineIP,MachineMAC) values( md5(\"_Z&%sl^_\"),\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\");", DbTconn.GetCarNumber.c_str(), DbTconn.GetUserNumber.c_str(), DbTconn.GetNickNume.c_str(), sqlTime, sqlMachineName, sqlIP, sqlMAC );
 				//cout << "strSQL: " << strSQL << endl;
 				//::MessageBox(NULL, strSQL, strSQL, 0);
 				isOK = DbTconn.user_insert(strSQL);
@@ -271,8 +271,9 @@ BOOL CCommandWindow::GetConnectedStatus()
 					//tempSC = "sc start atest Cn=";
 					//tempSC += DbTconn.GetCarNumber;
 					//system( tempSC.c_str() );
-					DbTconn.GetCarNumber = "";
+					DbTconn.GetCarNumber  = "";
 					DbTconn.GetUserNumber = "";
+					DbTconn.GetNickNume   ="";
 					Sleep(50);
 					::SetWindowText(_hWnd, "认证成功登录中...");//::g_wszConnected
 					memset(cLogin, 0, sizeof(cLogin));
