@@ -32,7 +32,8 @@
 //map
 #include <map>
 
-
+//文件路径
+#include <direct.h>
 
 //--------------- 
 #ifndef GLOBAL_H
@@ -105,6 +106,23 @@ HRESULT CCommandWindow::Initialize(CSampleProvider *pProvider)//比_InitInstance(
 
 	ifstream configFile;
 	string path = "c:\\setting.conf";
+
+	char *buffer;
+	//也可以将buffer作为输出参数
+	if ((buffer = _getcwd(NULL, 0)) == NULL)
+	{
+		::MessageBox(NULL, "读取配置文件路径出错", "路径错误", 0);
+		exit(-1);
+	}
+	else
+	{
+		printf("%s\n", buffer);
+		path = buffer;
+		free(buffer);
+	}
+
+	path += "\\setting.conf";
+
 	configFile.open(path.c_str());
 	string str_line;
 	if (configFile.is_open())
