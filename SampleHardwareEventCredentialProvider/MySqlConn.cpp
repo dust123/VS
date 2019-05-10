@@ -37,11 +37,13 @@ bool MySqlConn::user_query(string strSQL)
 {
 	 
 	char query[255];
-	sprintf_s(query, sizeof(query), "select * from CarTable where CarNumber=md5(\"_Z&%sl^_\")", strSQL.c_str() );
+	//sprintf_s(query, sizeof(query), "select * from CarTable where CarNumber=md5(\"_Z&%sl^_\")", strSQL.c_str()); 
+	sprintf_s(query, sizeof(query), "select * from CarTable where CarNumber=\"%s\" ", strSQL.c_str() );
 	//sprintf_s(query, sizeof(query), "select * from CarTable where CarNumber='%s'", strSQL.c_str());
 	//::MessageBox(NULL, query, query, 0);
 	//mysql_query(&m_sqlCon, "SET NAMES UTF8"); 
 	mysql_query(&m_sqlCon, "SET NAMES GB2312");//用这个
+	//mysql_query(&m_sqlCon, "SET NAMES 'Latin1'");
 	if (mysql_query(&m_sqlCon, query )) {
 		std::cout << "查询失败" << std::endl;
 		//return;
