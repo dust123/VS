@@ -1,7 +1,7 @@
 //#include "afx.h"
 #include "Global.h"
 
-char G_Readinfochs[20] = { 0 };  //字符方式存储
+char G_Readinfochs[40] = { 0 };  //字符方式存储
 string Readinfo ="";			 //字符串方式存储
 
 //配置文件相关变量

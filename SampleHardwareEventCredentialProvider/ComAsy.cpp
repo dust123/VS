@@ -147,7 +147,7 @@ unsigned int __stdcall ComAsy::OnRecv(void* LPParam)
 			//Readinfo = byteToHexStr(ReadBuf,30);
 			TempReadinfo += (LPCSTR)ReadBuf;
 
-			if ( 10== strlen(TempReadinfo.c_str()) ) {
+			if ( 32== strlen(TempReadinfo.c_str()) ) {
 				Readinfo = TempReadinfo;
 				Readinfoch = (char*)Readinfo.c_str(); //将string类型转为char*
 				strcpy_s(G_Readinfochs, Readinfoch);

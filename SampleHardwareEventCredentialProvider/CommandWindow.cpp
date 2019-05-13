@@ -105,7 +105,7 @@ HRESULT CCommandWindow::Initialize(CSampleProvider *pProvider)//比_InitInstance(
 	map<string, string> mapConfig;
 
 	ifstream configFile;
-	string path = "c:\\setting.conf";
+	string path = "";
 
 	char *buffer;
 	//也可以将buffer作为输出参数
@@ -234,7 +234,7 @@ BOOL CCommandWindow::GetConnectedStatus()
 	while (FALSE ==_fConnected) //加上循环计数作为认证失败的次数
 	{
 
-		if (10 == strlen(Readinfo.c_str()))// && (returndata == true)
+		if (32 == strlen(Readinfo.c_str()))// && (returndata == true)
 		{
 			//-----------------------------------
 			/*验证网络连通性*/
