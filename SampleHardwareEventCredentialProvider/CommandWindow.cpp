@@ -750,7 +750,7 @@ string CCommandWindow::MachineInfo()
 	}
 	//chTime, szBufCPName, strIP.c_str(), strMAC.c_str()
 	if (0 == strIP.length()) { strIP = "未到本机IP"; }
-	if (0 == strMAC.length()) { strIP = "未到本机MAC"; }
+	if (0 == strMAC.length()) { strMAC = "未到本机MAC"; }
 	string strReturn = "";
 	strReturn += chTime;
 	strReturn += "^";
