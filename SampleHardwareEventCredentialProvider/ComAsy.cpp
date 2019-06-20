@@ -159,6 +159,14 @@ unsigned int __stdcall ComAsy::OnRecv(void* LPParam)
 			PurgeComm(obj->m_hCom, PURGE_RXCLEAR | PURGE_RXABORT);
 		}
 
+		//如果缓存中无数据线程会停在此，如果hCom关闭会立即返回False
+		Status = GetOverlappedResult(obj->m_hCom, &obj->m_ovWait, &Bytes, TRUE);
+		if (!Status) 
+		{
+			cout << "Status is error isopenCOM = 1" << endl;
+			isopenCOM = 1;
+		}
+
 	}
 	//outfCom.close();
 

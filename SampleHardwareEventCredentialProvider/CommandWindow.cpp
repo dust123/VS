@@ -57,6 +57,8 @@ BOOL SerialWr = FALSE;
 unsigned char chData[] = "ready";
 LPBYTE WriteBuf = chData;
 int len = sizeof(chData);
+LPCSTR Port;
+int SerialIN = 0;
 
 int RunOnce = 0;
 //int tempStrlen = 0;
@@ -172,7 +174,7 @@ HRESULT CCommandWindow::Initialize(CSampleProvider *pProvider)//比_InitInstance(
 	//--------------------------------------------------------------------------------------------------------
 	//先串口通信
 	//ComAsy SerialCom;
-	LPCSTR Port;
+
 	if (strCom.length() != 0)
 	{
 		 Port = strCom.c_str();;// = "COM4"; 
@@ -182,7 +184,7 @@ HRESULT CCommandWindow::Initialize(CSampleProvider *pProvider)//比_InitInstance(
 		exit(-1);
 	}
 	 
-	int SerialIN = 0;
+	SerialIN = 0;
 	SerialIN = SerialCom.InitCOM(Port);
 
 	if (SerialIN) {
@@ -356,8 +358,62 @@ BOOL CCommandWindow::GetConnectedStatus()
 
 			Readinfo = "";//清理string卡号
 		}//endif 
+		else
+		{
+
+
+			//测试到串口设备断开连接了，需要重新连接串口设备
+			if (1 == isopenCOM)
+			{
+				//先清再掉以前的连接信息
+				SerialCom.UninitCOM();
+
+				::SetWindowText(_hWnd, "通信中断！");//::g_wszConnected
+				memset(cLogin, 0, sizeof(cLogin));
+				strcpy_s(cLogin, "设备断开连接,通信中断！");
+				InvalidateRect(_hWnd, NULL, true);//InvalidateRect发送区域失效， 产生WM_PAINT消息，重绘失效区域 
+
+				//打开串口通信
+				//ComAsy SerialCom;
+				if (strCom.length() != 0)
+				{
+					Port = strCom.c_str();;// = "COM4"; 
+				}
+				else {
+					::MessageBox(NULL, "读取串口配置文件出错", "错误COM", 0);
+					//cout << "Cannot open config file setting.ini, path: ";
+					exit(-1);
+				}
+				SerialIN = 0;
+				SerialIN = SerialCom.InitCOM(Port);
+				//有没有连接成功
+				if (SerialIN) {
+					printf("打开串口OK\n");
+
+					::SetWindowText(_hWnd, "设备已连接！");//::g_wszConnected
+					memset(cLogin, 0, sizeof(cLogin));
+					strcpy_s(cLogin, "请刷卡进行认证登录！");
+					InvalidateRect(_hWnd, NULL, true);//InvalidateRect发送区域失效， 产生WM_PAINT消息，重绘失效区域 
+
+					isopenCOM = 0; //连接成功那么退出
+
+				}
+				else {
+					printf("打开串口失败！\n");
+				}
+				Sleep(1000);
+
+			}
+
+ 
+		 
+	 
+
+
+		}
 
 	}
+ 
 
 
 
