@@ -1,6 +1,5 @@
 //#include "stdafx.h"
-#include "MySqlConn.h"
-
+#include "MySqlConn.h" 
 
 MySqlConn::MySqlConn()
 {
@@ -38,21 +37,22 @@ bool MySqlConn::user_query(string strSQL)
 	 
 	char query[255];
 	//sprintf_s(query, sizeof(query), "select * from CarTable where CarNumber=md5(\"_Z&%sl^_\")", strSQL.c_str()); 
-	sprintf_s(query, sizeof(query), "select * from CarTable where CarNumber=\"%s\" ", strSQL.c_str() );
+	sprintf_s(query, sizeof(query), "select * from CarTable where CarNumber=\"%s\" ", strSQL.c_str());
 	//sprintf_s(query, sizeof(query), "select * from CarTable where CarNumber='%s'", strSQL.c_str());
-	//::MessageBox(NULL, query, query, 0);
+	::MessageBox(NULL, query, "query", 0);
 	//mysql_query(&m_sqlCon, "SET NAMES UTF8"); 
 	mysql_query(&m_sqlCon, "SET NAMES GB2312");//用这个
-	//mysql_query(&m_sqlCon, "SET NAMES 'Latin1'");
-	if (mysql_query(&m_sqlCon, query )) {
+											   //mysql_query(&m_sqlCon, "SET NAMES 'Latin1'");
+	if (mysql_query(&m_sqlCon, query)) {
 		std::cout << "查询失败" << std::endl;
-		//return;
+		::MessageBox(NULL, "查询失败", "qq", 0);
 	}
 	else
 	{
 		std::cout << "查询成功" << std::endl;
+		::MessageBox(NULL, "查询成功", "qq", 0);
 	}
-	
+
 	MYSQL_RES *result;//获得结果集
 	result = mysql_store_result(&m_sqlCon);
 	if (result) {
@@ -74,15 +74,28 @@ bool MySqlConn::user_query(string strSQL)
 		//	}
 		//	std::cout << std::endl;
 		//}
-		
 		if (1 == row_num)
 		{
 			sql_row = mysql_fetch_row(result);
 			cout << "用户名： " << sql_row[2] << endl;
 
 			GetCarNumber  = sql_row[1];
-			GetUserNumber = sql_row[2];
+			GetUserNames = sql_row[2];
 			GetNickNume   = sql_row[3];
+			//strlogUser    = sql_row[2];
+			//strlogUserPW  = sql_row[4];
+			::MessageBox(NULL, GetCarNumber.c_str(), "query", 0);
+			::MessageBox(NULL, sql_row[1], "query", 0); 
+			::MessageBox(NULL, sql_row[2], "query", 0);
+			::MessageBox(NULL, GetNickNume.c_str(), "query", 0);
+			::MessageBox(NULL, sql_row[3], "query", 0);
+
+			if ((sql_row[4] == NULL) || (sql_row[4] == "")) 
+			{ 
+				GetUserPW = ""; 
+			}else{
+				GetUserPW = sql_row[4];
+			}
 			//::MessageBox(NULL, sql_row[2], sql_row[2], 0);
 			if (result != NULL)
 				mysql_free_result(result);
@@ -122,8 +135,8 @@ bool MySqlConn::user_insert(char *chSQL)
 	//}
 	//if (mysql_num_rows(result)) {
 	//	std::cout << "用户已存在" << std::endl; 
-	//}
-	
+	//} 
+	mysql_query(&m_sqlCon, "SET NAMES GB2312");//用这个
 
 	sprintf_s(query, sizeof(query), chSQL);
 	cout << "SQLinSert:" << query << endl;
@@ -143,26 +156,34 @@ bool MySqlConn::user_insert(char *chSQL)
 	}
 }
 
-void MySqlConn::user_update()
+bool MySqlConn::user_update(char *chpw)
 {
 	char query[255];
-	char select_user[255];
-	MYSQL_RES *result;
-	sprintf_s(select_user, sizeof(select_user), "select * from CarTable where UserName='%s'","test2");
-	if (mysql_query(&m_sqlCon, select_user) || !(result = mysql_store_result(&m_sqlCon))) {
-		std::cout << "修改查询失败" << std::endl; 
-	}
-	if (mysql_num_rows(result) == 0) {
-		std::cout << "要修改的用户不存在" << std::endl; 
-	}
-	 
-	sprintf_s(query, sizeof(query), "update CarTable set CarNumber='%s' where UserName='%s'","55555", "test2");
+	//char select_user[255];
+	//MYSQL_RES *result;
+	//sprintf_s(select_user, sizeof(select_user), "select * from CarTable where UserName='%s'","test2");
+	//if (mysql_query(&m_sqlCon, select_user) || !(result = mysql_store_result(&m_sqlCon))) {
+	//	std::cout << "修改查询失败" << std::endl; 
+	//}
+	//if (mysql_num_rows(result) == 0) {
+	//	std::cout << "要修改的用户不存在" << std::endl; 
+	//}
+	mysql_query(&m_sqlCon, "SET NAMES GB2312");//用这个
+	//::MessageBox(NULL, chpw, TEXT("321"), 0);
+	sprintf_s(query, sizeof(query), "update CarTable set UserPW='%s' where CarNumber='%s'", chpw, GetCarNumber.c_str() );
+	//::MessageBox(NULL, query, TEXT("321"), 0);
 	if (mysql_query(&m_sqlCon, query)) {
 		std::cout << "修改失败" << std::endl; 
+		return false;
 	}
-	std::cout << "修改成功，共修改：" << mysql_affected_rows(&m_sqlCon) << "行" << std::endl;
-	if (result != NULL)
-		mysql_free_result(result);
+	else
+	{
+		return true;
+	}
+	//std::cout << "修改成功，共修改：" << mysql_affected_rows(&m_sqlCon) << "行" << std::endl;
+	//if (result != NULL)
+	//	mysql_free_result(result);
+	
 }
 
 void MySqlConn::user_delete()

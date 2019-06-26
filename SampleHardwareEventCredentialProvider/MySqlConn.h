@@ -31,15 +31,16 @@ private:
  
 public:
 	string GetCarNumber;
-	string GetUserNumber;
+	string GetUserNames;
 	string GetNickNume;
+	string GetUserPW;
 	//初始化mysql  
 	MYSQL m_sqlCon;  //连接mysql，数据库  
 
 	bool initConnection();
 	bool user_query(string strSQL);
 	bool user_insert(char *chSQL);
-	void user_update();
+	bool user_update(char *chpw);
 	void user_delete();
 	void FreeConnect();
 };

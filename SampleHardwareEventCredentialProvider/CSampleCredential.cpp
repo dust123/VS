@@ -15,7 +15,7 @@
 #include <unknwn.h>
 #include "CSampleCredential.h"
 #include "guid.h"
-//ÓòÃû
+//ÓòÃûÓÃ
 #include <DSRole.h>
 #pragma comment(lib, "netapi32.lib")
 

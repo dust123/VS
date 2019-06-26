@@ -42,7 +42,8 @@ private:
 
     CSampleProvider     *_pProvider;        // Pointer to our owner.指向所有者的指针。
     HWND                 _hWnd;             // Handle to our window.处理我们的窗口。
-    //HWND                 _hWndButton;       // Handle to our window's button.处理窗口按钮。
+	HWND                 _hWndEDIT;
+    HWND                 _hWndButton;       // Handle to our window's button.处理窗口按钮。
     HINSTANCE            _hInst;            // Current instance当前实例
     BOOL                 _fConnected;       // Whether or not we're connected. 我们是否有联系。
 };
