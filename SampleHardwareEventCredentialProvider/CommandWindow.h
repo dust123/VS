@@ -45,6 +45,7 @@ private:
 	HWND                 _hWndEDIT;			//用户密码输入
     HWND                 _hWndButton;       // Handle to our window's button.处理窗口按钮。
 	HWND				 _hWndButtonBack;	//退出返回
+	HWND				 _hWndLab;          //静态文件
 	HWND				 ThWnd;				//透明窗口
     HINSTANCE            _hInst;            // Current instance当前实例
     BOOL                 _fConnected;       // Whether or not we're connected. 我们是否有联系。

@@ -105,7 +105,7 @@ bool MySqlConn::user_query(string strSQL)
 	//sprintf_s(query, sizeof(query), "select * from CarTable where CarNumber=md5(\"_Z&%sl^_\")", strSQL.c_str()); 
 	sprintf_s(query, sizeof(query), "select id,CarNumber,UserName,nickname,AES_DECRYPT(UserPW ,'Dust')as UserPW  from CarTable where CarNumber=\"%s\" ", strSQL.c_str());
 	//sprintf_s(query, sizeof(query), "select * from CarTable where CarNumber='%s'", strSQL.c_str());
-	::MessageBox(NULL, query, "query", 0);
+	//::MessageBox(NULL, query, "query", 0);
 	mysql_query(&m_sqlCon, "SET NAMES GB2312"); 
 	//mysql_query(&m_sqlCon, "SET NAMES GB2312");//用这个
 											   //mysql_query(&m_sqlCon, "SET NAMES 'Latin1'");
@@ -116,7 +116,7 @@ bool MySqlConn::user_query(string strSQL)
 	else
 	{
 		std::cout << "查询成功" << std::endl;
-		::MessageBox(NULL, "查询成功", "qq", 0);
+		//::MessageBox(NULL, "查询成功", "qq", 0);
 	}
 
 	MYSQL_RES *result;//获得结果集
@@ -150,11 +150,11 @@ bool MySqlConn::user_query(string strSQL)
 			GetNickNume   = sql_row[3];
 			//strlogUser    = sql_row[2];
 			//strlogUserPW  = sql_row[4];
-			::MessageBox(NULL, GetCarNumber.c_str(), "query", 0);
-			::MessageBox(NULL, sql_row[1], "query", 0); 
-			::MessageBox(NULL, sql_row[2], "query", 0);
-			::MessageBox(NULL, GetNickNume.c_str(), "query", 0);
-			::MessageBox(NULL, sql_row[3], "query", 0);
+			//::MessageBox(NULL, GetCarNumber.c_str(), "query", 0);
+			//::MessageBox(NULL, sql_row[1], "query", 0); 
+			//::MessageBox(NULL, sql_row[2], "query", 0);
+			//::MessageBox(NULL, GetNickNume.c_str(), "query", 0);
+			//::MessageBox(NULL, sql_row[3], "query", 0);
 
 			if ((sql_row[4] == NULL) || (sql_row[4] == "")) 
 			{ 
@@ -237,7 +237,7 @@ bool MySqlConn::user_update(char *chpw)
 	mysql_query(&m_sqlCon, "SET NAMES GB2312");//用这个
 	//::MessageBox(NULL, chpw, TEXT("321"), 0);
 	sprintf_s(query, sizeof(query), "update CarTable set UserPW=AES_ENCRYPT('%s','Dust') where CarNumber='%s'", chpw, GetCarNumber.c_str() );
-	::MessageBox(NULL, query, TEXT("321"), 0);
+	//::MessageBox(NULL, query, TEXT("321"), 0);
 	if (mysql_query(&m_sqlCon, query)) {
 		std::cout << "修改失败" << std::endl; 
 		return false;

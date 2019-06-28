@@ -100,12 +100,12 @@ bool HttpConnect::socketHttp(std::string host, std::string request,bool boolGET)
 		{
 			//cout << "用户登录OK" << std::endl;
 			boolGET = true;
-			::MessageBox(NULL, "boolGET is true", TEXT("boolGET"), 0);
+			//::MessageBox(NULL, "boolGET is true", TEXT("boolGET"), 0);
 		}
 		else
 		{
 			boolGET = false;
-			::MessageBox(NULL, "boolGET is false", TEXT("boolGET"), 0);
+			::MessageBox(NULL, "用户登录互联网行为审计失败", TEXT("boolGET"), 0);
 		}
 		
 	}
@@ -130,12 +130,12 @@ bool HttpConnect::postData(std::string host, std::string path, std::string post_
 	temp = socketHttp(host, stream.str(), true);
 	if (temp)
 	{
-		::MessageBox(NULL, "return true", TEXT("postData"), 0);
+		//::MessageBox(NULL, "return true", TEXT("postData"), 0);
 		return true;
 	}
 	else
 	{
-		::MessageBox(NULL, "return false", TEXT("postData"), 0);
+		::MessageBox(NULL, "用户登录互联网行为审计失败", TEXT("postData"), 0);
 		return false;
 	}
 }
