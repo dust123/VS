@@ -68,14 +68,28 @@ int SerialIN = 0;
 int RunOnce = 0;
 //int tempStrlen = 0;
 
-
+//HTTP POST GET
 HttpConnect *http = new HttpConnect();
 
+//存用户密码
 char getUpw[1024];//取用户输入信息
 bool empPWCT = true;//控制用户输入密码后是否向下执行
+//返回按钮被点击是否跳出循环，进行下一个轮回
+bool boolGetBack = false;
 
 MySqlConn DbTconn;
 bool isOK;
+
+//配置文件中部分内容 ，不用全局变量了
+string BAip = "";                    //行为审计
+string BALogoutdDirectory = "";    //行为审计退出 路径
+string BALogoutT = "";			   //行为审计退出 随机数
+string BALOginDirectory = "";	   //行为审计登录 路径
+string BALLoginDt = "";
+
+
+
+
 
 CCommandWindow::CCommandWindow(void)
 {
@@ -187,7 +201,7 @@ HRESULT CCommandWindow::Initialize(CSampleProvider *pProvider)//比_InitInstance(
 
 	//--------------------------------------------------------------------------------------------------------
 	//先注销HTTP
-	http->getData("192.168.0.11", "/ajaxlogout", "_t=1561370397125");
+	//http->getData("192.168.0.11", "/ajaxlogout", "_t=1561370397125");
 
 	//先串口通信
 	//ComAsy SerialCom;
@@ -278,6 +292,21 @@ BOOL CCommandWindow::GetConnectedStatus()
 			//G_Readinfochs;
 			isOK = DbTconn.initConnection();
 			::MessageBox(NULL, Readinfo.c_str(), Readinfo.c_str(), 0);
+			isOK = DbTconn.info_query();
+			if (isOK)//查到了
+			{
+				BAip = DbTconn.mysqlBAip;                    //行为审计
+				BALogoutdDirectory = DbTconn.mysqlBALogoutdDirectory;    //行为审计退出 路径
+				BALogoutT = DbTconn.mysqlBALogoutT;			   //行为审计退出 随机数
+				BALOginDirectory = DbTconn.mysqlBALOginDirectory;	   //行为审计登录 路径
+				BALLoginDt = DbTconn.mysqlBALLoginDt;
+				//::MessageBox(NULL, BAip.c_str(), "BAip", 0);
+				//::MessageBox(NULL, BALogoutdDirectory.c_str(), "BALogoutdDirectory", 0);
+				//::MessageBox(NULL, BALogoutT.c_str(), "BALogoutT", 0);
+				//::MessageBox(NULL, BALOginDirectory.c_str(), "BALOginDirectory", 0);
+				//::MessageBox(NULL, BALLoginDt.c_str(), "BALLoginDt", 0);
+
+			}
 			isOK = DbTconn.user_query(Readinfo);
 			if (isOK)//查到了
 			{  
@@ -286,10 +315,7 @@ BOOL CCommandWindow::GetConnectedStatus()
 				::MessageBox(NULL, strlogUser.c_str(), "strlogUser", 0);
 				::MessageBox(NULL, strlogUserPW.c_str(), "strlogUserPW", 0);
 				//查到人了就进行认证，在这进行上网认证，如果ok那就通过，不OK还要要求输入新密码
-
-
-
-
+				  
 				//查到用户密码为空
 				if (  DbTconn.GetUserPW=="" )
 				{
@@ -303,65 +329,81 @@ BOOL CCommandWindow::GetConnectedStatus()
 
 					::ShowWindow(_hWndButton, SW_NORMAL);//先吧密码输入框隐藏起来
 					::ShowWindow(_hWndEDIT, SW_NORMAL);//先吧密码输入框隐藏起来
+					::ShowWindow(_hWndButtonBack, SW_NORMAL);
 					//SendMessage(_hWnd, BM_CLICK, 0, 0);
-
+					empPWCT = true;
 					while (empPWCT)
 					{
 						Sleep(100);
 					}
+					::MessageBox(NULL, "退出if 中空密码while ", TEXT("if while"), 0);
 
 				}
 				else
 				//密码不为空
 				{ 
-
-					sprintf_s(chhttpPOST, sizeof(chhttpPOST), "username=%s&password=%s&pwd=%s&secret=true", strlogUser.c_str(), strlogUserPW.c_str(), strlogUserPW.c_str());
-
-					::MessageBox(NULL, chhttpPOST, TEXT("EDIT的WM_COMMAND消息"), 0);
-					http->BoolHttpback = http->postData("192.168.0.11", "/webAuth/", chhttpPOST);
+					//先注销HTTP
+					http->getData(BAip, BALogoutdDirectory, BALogoutT);
+					//http->getData("192.168.0.11", "/ajaxlogout", "_t=1561370397125");
+					//sprintf_s(chhttpPOST, sizeof(chhttpPOST),"username=%s&password=%s&pwd=%s&secret=true", strlogUser.c_str(), strlogUserPW.c_str(), strlogUserPW.c_str());
+					sprintf_s(chhttpPOST, sizeof(chhttpPOST), BALLoginDt.c_str(), strlogUser.c_str(), strlogUserPW.c_str(), strlogUserPW.c_str());
+					::MessageBox(NULL, chhttpPOST, TEXT("//密码不为空"), 0);
+					http->BoolHttpback = http->postData(BAip, BALOginDirectory, chhttpPOST);
 					//http->BoolHttpback = http->postData("192.168.0.11", "/webAuth/", "username=lulanglang&password=12345678-l&pwd=12345678-l&secret=true");
+					empPWCT = true;
+						if (http->BoolHttpback)
+						{
+							::MessageBox(NULL, "http->BoolHttpback", TEXT("密码不为空http->BoolHttpback"), 0);
+							//使用MySql进行更新
+							//::MessageBox(NULL, TEXT(buf), TEXT("123"), 0);
+							//isOK = DbTconn.user_update(getUpw);
+							//if (isOK) {
+								::MessageBox(NULL, "if (isOK) ", TEXT("EDIT的WM_COMMAND消息"), 0);
+								empPWCT = true;
+								::SetWindowText(_hWnd, "验证通过");//::g_wszConnected
+								memset(cLogin, 0, sizeof(cLogin));
+								strcpy_s(cLogin, "密码验证通过登录中！...");
+								InvalidateRect(_hWnd, NULL, true);//InvalidateRect发送区域失效， 产生WM_PAINT消息，重绘失效区域
+																	//::MessageBox(NULL, "isOK", "isOK", 0);
+								::ShowWindow(_hWndButton, SW_HIDE);//先吧密码输入框隐藏起来
+								::ShowWindow(_hWndEDIT, SW_HIDE);//先吧密码输入框隐藏起来
+								::ShowWindow(_hWndButtonBack, SW_HIDE);
 
-					if (http->BoolHttpback)
-					{
-						::MessageBox(NULL, "http->BoolHttpback", TEXT("EDIT的WM_COMMAND消息"), 0);
-						//使用MySql进行更新
-						//::MessageBox(NULL, TEXT(buf), TEXT("123"), 0);
-						//isOK = DbTconn.user_update(getUpw);
-						//if (isOK) {
-							::MessageBox(NULL, "if (isOK) ", TEXT("EDIT的WM_COMMAND消息"), 0);
+								empPWCT = false;
+								boolGetBack = false;
+							//}
+							//else
+							//{
+							//	empPWCT = true;
+							//}
+						}
+						else
+						{
+							::ShowWindow(_hWndButton, SW_NORMAL);//先吧密码输入框隐藏起来
+							::ShowWindow(_hWndEDIT, SW_NORMAL);//先吧密码输入框隐藏起来
+							::ShowWindow(_hWndButtonBack, SW_NORMAL);
 							empPWCT = true;
-							::SetWindowText(_hWnd, "验证通过");//::g_wszConnected
+							::SetWindowText(_hWnd, "验证失败");//::g_wszConnected
 							memset(cLogin, 0, sizeof(cLogin));
-							strcpy_s(cLogin, "密码验证通过登录中！...");
+							strcpy_s(cLogin, "请输入密码验证！...");
 							InvalidateRect(_hWnd, NULL, true);//InvalidateRect发送区域失效， 产生WM_PAINT消息，重绘失效区域
-															  //::MessageBox(NULL, "isOK", "isOK", 0);
-							::ShowWindow(_hWndButton, SW_HIDE);//先吧密码输入框隐藏起来
-							::ShowWindow(_hWndEDIT, SW_HIDE);//先吧密码输入框隐藏起来
-
-							empPWCT = false;
-						//}
-						//else
-						//{
-						//	empPWCT = true;
-						//}
-					}
-					else
-					{
-						::ShowWindow(_hWndButton, SW_NORMAL);//先吧密码输入框隐藏起来
-						::ShowWindow(_hWndEDIT, SW_NORMAL);//先吧密码输入框隐藏起来
-						empPWCT = true;
-						::SetWindowText(_hWnd, "验证失败");//::g_wszConnected
-						memset(cLogin, 0, sizeof(cLogin));
-						strcpy_s(cLogin, "请输入密码验证！...");
-						InvalidateRect(_hWnd, NULL, true);//InvalidateRect发送区域失效， 产生WM_PAINT消息，重绘失效区域
-					} 
-
-					while (empPWCT)
-					{
-						Sleep(100);
-					}
+						} 
+							 
+						while (empPWCT)
+						{
+							Sleep(100);
+						}
+						::MessageBox(NULL, "退出if 中非空密码while ", TEXT("if while"), 0);
+				 
 				}//密码不为空end
+				
+				 //返回按钮消息响应
+				if (boolGetBack)
+				{ 
 
+					Readinfo = "";
+					continue;
+				}
 
 
 
@@ -382,37 +424,37 @@ BOOL CCommandWindow::GetConnectedStatus()
 				//::MessageBox(NULL, strSQL, strSQL, 0);
 				isOK = DbTconn.user_insert(strSQL);
 				//--------------------------------------------
-				if (isOK) 
-				{
-					//RunOnce = 1;
-					//关闭串口
-					SerialCom.UninitCOM();
-					Sleep(1000);
-					CCommandWindow::_fConnected = TRUE;
-					//tempSC = "sc start atest Cn=";
-					//tempSC += DbTconn.GetCarNumber;
-					//system( tempSC.c_str() );
-					DbTconn.GetCarNumber  = "";
-					DbTconn.GetUserNames = "";
-					DbTconn.GetNickNume   ="";
-					Sleep(50);
-					::SetWindowText(_hWnd, "认证成功");//::g_wszConnected
-					memset(cLogin, 0, sizeof(cLogin));
-					strcpy_s(cLogin, "认证成功登录中...");
-					InvalidateRect(_hWnd, NULL, true);//InvalidateRect发送区域失效， 产生WM_PAINT消息，重绘失效区域
-													  //::MessageBox(NULL, "isOK", "isOK", 0);
+						if (isOK) 
+						{
+							//RunOnce = 1;
+							//关闭串口
+							SerialCom.UninitCOM();
+							Sleep(1000);
+							CCommandWindow::_fConnected = TRUE;
+							//tempSC = "sc start atest Cn=";
+							//tempSC += DbTconn.GetCarNumber;
+							//system( tempSC.c_str() );
+							DbTconn.GetCarNumber  = "";
+							DbTconn.GetUserNames = "";
+							DbTconn.GetNickNume   ="";
+							Sleep(50);
+							::SetWindowText(_hWnd, "认证成功");//::g_wszConnected
+							memset(cLogin, 0, sizeof(cLogin));
+							strcpy_s(cLogin, "认证成功登录中...");
+							InvalidateRect(_hWnd, NULL, true);//InvalidateRect发送区域失效， 产生WM_PAINT消息，重绘失效区域
+															  //::MessageBox(NULL, "isOK", "isOK", 0);
 					
-					break; //认证通过跳出
+							break; //认证通过跳出
 				
-				}
-				else
-				{
-					::SetWindowText(_hWnd, "无法写入数据库！");//::g_wszConnected
-					memset(cLogin, 0, sizeof(cLogin));
-					strcpy_s(cLogin, "登录失败！");
-					InvalidateRect(_hWnd, NULL, true);//InvalidateRect发送区域失效， 产生WM_PAINT消息，重绘失效区域
-													  //::MessageBox(NULL, "isOK", "isOK", 0);
-				}
+						}
+						else
+						{
+							::SetWindowText(_hWnd, "无法写入数据库！");//::g_wszConnected
+							memset(cLogin, 0, sizeof(cLogin));
+							strcpy_s(cLogin, "登录失败！");
+							InvalidateRect(_hWnd, NULL, true);//InvalidateRect发送区域失效， 产生WM_PAINT消息，重绘失效区域
+															  //::MessageBox(NULL, "isOK", "isOK", 0);
+						}
 
 
 			}
@@ -591,6 +633,43 @@ HRESULT CCommandWindow::_InitInstance()
     HRESULT hr = S_OK;
 	//::MessageBox(NULL, "1", "1111111", 0);
     // Create our window to receive events.创建窗口以接收事件。
+
+
+//-----------------------------
+	//ThWnd = ::CreateWindowEx(
+	//	WS_EX_LAYERED,
+	//	TEXT("TestWindow"),
+	//	TEXT("透明窗口"),
+	//	WS_POPUP | WS_VISIBLE,
+	//	0, 0, 200, 200,
+	//	NULL, NULL, _hInst, NULL);
+	//if (_hWnd == NULL)
+	//{
+	//	hr = HRESULT_FROM_WIN32(::GetLastError());
+	//}
+	//SetLayeredWindowAttributes(ThWnd,200, 178, LWA_ALPHA); //LWA_ALPHA //LWA_COLORKEY
+	//SetLayeredWindowAttributes(ThWnd, 0, (255 * 70) / 150, LWA_ALPHA);
+	//::ShowWindow(ThWnd, SW_NORMAL);//先吧密码输入框隐藏起来
+
+	//if (SUCCEEDED(hr))
+	//{
+	//	_hWndButton = ::CreateWindow("Button", "登录",
+	//		WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,
+	//		1, 1, 40, 21,
+	//		_hWnd,
+	//		NULL,
+	//		_hInst,
+	//		NULL);
+
+	//	if (_hWndButton == NULL)
+	//	{
+	//		hr = HRESULT_FROM_WIN32(::GetLastError());
+	//	}
+	//	::ShowWindow(_hWndButton, SW_NORMAL);//先吧密码输入框隐藏起来
+	//}
+
+//-----------------------------
+
     _hWnd = ::CreateWindowEx(
         WS_EX_TOPMOST, 
         ::g_wszClassName, 
@@ -598,14 +677,17 @@ HRESULT CCommandWindow::_InitInstance()
         WS_DLGFRAME,
 		rScreen.right / 2 -100,	//300,
 		rScreen.bottom / 2 -180,	//250,
-		200, 120, 
+		300, 120, 
         NULL,
         NULL, _hInst, NULL);
     if (_hWnd == NULL)
     {
         hr = HRESULT_FROM_WIN32(::GetLastError());
     }
-	 
+	
+
+
+
     if (SUCCEEDED(hr))
     {       
 		// Add a button to the window.
@@ -617,8 +699,9 @@ HRESULT CCommandWindow::_InitInstance()
 		//	_hInst,
 		//	NULL);
 		_hWndEDIT = ::CreateWindow("EDIT", "测试",
-			WS_CHILD | WS_VISIBLE | WS_BORDER | BS_TEXT| EM_GETPASSWORDCHAR,//ES_LEFT | ES_MULTILINE | ES_AUTOVSCROLL,
-			10, 10, 100, 21, 
+			WS_CHILD| ES_PASSWORD | WS_VISIBLE | WS_BORDER  /*密码*/ | ES_AUTOHSCROLL /*水平滚动*/,
+			//WS_CHILD | WS_VISIBLE | WS_BORDER | BS_TEXT|ES_MULTILINE| ES_AUTOHSCROLL| ES_PASSWORD| ES_PASSWORD  ,//ES_LEFT | ES_MULTILINE | ES_AUTOVSCROLL,//ES_MULTILINE 多行    WS_CHILD | WS_VISIBLE | WS_BORDER |  ES_LEFT | ES_AUTOHSCROLL
+			10, 10, 110, 21, 
 			_hWnd,
 			NULL, 
 			_hInst,
@@ -629,7 +712,7 @@ HRESULT CCommandWindow::_InitInstance()
 			hr = HRESULT_FROM_WIN32(::GetLastError());
 		}
 
-		_hWndButton = ::CreateWindow("Button", "确定",
+		_hWndButton = ::CreateWindow("Button", "登录",
 			WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,
 			110, 10, 40, 21,
 			_hWnd,
@@ -642,6 +725,24 @@ HRESULT CCommandWindow::_InitInstance()
 			hr = HRESULT_FROM_WIN32(::GetLastError());
 		}
 
+		_hWndButtonBack = ::CreateWindow("Button", "返回",
+			WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,
+			155, 10, 40, 21,
+			_hWnd,
+			NULL,
+			_hInst,
+			NULL);
+
+		if (_hWndButtonBack == NULL)
+		{
+			hr = HRESULT_FROM_WIN32(::GetLastError());
+		}
+
+		//设置字体
+		HFONT hFont = (HFONT)GetStockObject(DEFAULT_GUI_FONT);
+		::SendMessage(_hWndButton, WM_SETFONT, (WPARAM)hFont, 1);  //设置控件字体  
+		::SendMessage(_hWndButtonBack, WM_SETFONT, (WPARAM)hFont, 1);
+
 
 
         if (SUCCEEDED(hr))
@@ -653,6 +754,7 @@ HRESULT CCommandWindow::_InitInstance()
             }
 			::ShowWindow(_hWndButton, SW_HIDE);//先吧密码输入框隐藏起来
 			::ShowWindow(_hWndEDIT, SW_HIDE);//先吧密码输入框隐藏起来
+			::ShowWindow(_hWndButtonBack, SW_HIDE);
             if (SUCCEEDED(hr))
             {
                 if (!::UpdateWindow(_hWnd))
@@ -692,16 +794,21 @@ BOOL CCommandWindow::_ProcessNextMessage()
 
 		if ((HWND)msg.lParam == _hWndButton)
 		{		
-			SendMessage(_hWndEDIT, WM_GETTEXT, sizeof(getUpw) / sizeof(TCHAR), (LPARAM)(void*)getUpw);
-			::MessageBox(NULL, getUpw, TEXT("EDIT的WM_COMMAND消息"), 0);
+			//取edit内容用  GetDlgItemText(_hWndEDIT, nEditID, szString, nMax);也可以
+			SendMessage(_hWndEDIT, WM_GETTEXT, sizeof(getUpw) / sizeof(TCHAR), (LPARAM)(void*)getUpw);//WM_GETTEXT（获取edit中的所有文字）
+			::MessageBox(NULL, getUpw, TEXT("用户密码"), 0);
 			if (strlen(getUpw) > 8)
 			{
+				//先注销HTTP
+				http->getData(BAip, BALogoutdDirectory, BALogoutT);
+				 
 				//if(getUpw == DbTconn.GetUserPW)
 				::MessageBox(NULL, "intstrlen(getUpw)", TEXT("EDIT的WM_COMMAND消息"), 0);
-				sprintf_s(chhttpPOST, sizeof(chhttpPOST), "username=%s&password=%s&pwd=%s&secret=true", strlogUser.c_str(), getUpw, getUpw);
-	 
-				::MessageBox(NULL, chhttpPOST, TEXT("EDIT的WM_COMMAND消息"), 0);
-				http->BoolHttpback = http->postData("192.168.0.11", "/webAuth/", chhttpPOST);
+				 
+				//sprintf_s(chhttpPOST, sizeof(chhttpPOST), "username=%s&password=%s&pwd=%s&secret=true", strlogUser.c_str(), getUpw, getUpw);
+				sprintf_s(chhttpPOST, sizeof(chhttpPOST), BALLoginDt.c_str(), strlogUser.c_str(), getUpw, getUpw);
+				::MessageBox(NULL, chhttpPOST, TEXT("chhttpPOST消息"), 0);
+				http->BoolHttpback = http->postData(BAip, BALOginDirectory, chhttpPOST);
 				//http->BoolHttpback = http->postData("192.168.0.11", "/webAuth/", "username=lulanglang&password=12345678-l&pwd=12345678-l&secret=true");
 		 
 				if (http->BoolHttpback)
@@ -720,16 +827,19 @@ BOOL CCommandWindow::_ProcessNextMessage()
 															  //::MessageBox(NULL, "isOK", "isOK", 0);
 							::ShowWindow(_hWndButton, SW_HIDE);//先吧密码输入框隐藏起来
 							::ShowWindow(_hWndEDIT, SW_HIDE);//先吧密码输入框隐藏起来
-
+							::ShowWindow(_hWndButtonBack, SW_HIDE);//先吧密码输入框隐藏起来
+							boolGetBack = false;
 							empPWCT = false;
 						}
 						else
 						{
+							boolGetBack = false;
 							empPWCT = true;
 						}
 				}
 				else
 				{
+					boolGetBack = false;
 					empPWCT = true;
 					::SetWindowText(_hWnd, "验证失败");//::g_wszConnected
 					memset(cLogin, 0, sizeof(cLogin));
@@ -742,6 +852,7 @@ BOOL CCommandWindow::_ProcessNextMessage()
 				
 			}
 			else {
+				boolGetBack = false;
 				empPWCT = true;
 				::SetWindowText(_hWnd, "请重新填写");//::g_wszConnected
 				memset(cLogin, 0, sizeof(cLogin));
@@ -751,8 +862,24 @@ BOOL CCommandWindow::_ProcessNextMessage()
 			}
 
 		}
+        
+		//返回按钮消息响应
+		if ((HWND)msg.lParam == _hWndButtonBack)
+		{
+			::ShowWindow(_hWndButton, SW_HIDE);//先吧密码输入框隐藏起来
+			::ShowWindow(_hWndEDIT, SW_HIDE);//先吧密码输入框隐藏起来
+			::ShowWindow(_hWndButtonBack, SW_HIDE);//先吧密码输入框隐藏起来
 
+			SetWindowText(_hWndEDIT, "");
 
+			::SetWindowText(_hWnd, "设备已链接");//::g_wszConnected
+			memset(cLogin, 0, sizeof(cLogin));
+			strcpy_s(cLogin, "请刷卡进行认证登录！");
+			InvalidateRect(_hWnd, NULL, true);//InvalidateRect发送区域失效， 产生WM_PAINT消息，重绘失效区域
+
+			empPWCT = false;
+			boolGetBack = true;
+		}
 
 
     }

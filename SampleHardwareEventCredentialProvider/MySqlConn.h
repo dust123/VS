@@ -34,10 +34,18 @@ public:
 	string GetUserNames;
 	string GetNickNume;
 	string GetUserPW;
+//行为审计的配置信息
+	string mysqlBAip;
+	string mysqlBALogoutdDirectory;
+	string mysqlBALogoutT;
+	string mysqlBALOginDirectory;
+	string mysqlBALLoginDt;
+
 	//初始化mysql  
 	MYSQL m_sqlCon;  //连接mysql，数据库  
 
 	bool initConnection();
+	bool info_query(); // 行为审计的一些配置
 	bool user_query(string strSQL);
 	bool user_insert(char *chSQL);
 	bool user_update(char *chpw);

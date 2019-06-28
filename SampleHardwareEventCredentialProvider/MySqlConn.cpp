@@ -32,16 +32,82 @@ bool MySqlConn::initConnection()
 	}
 }
 
+bool MySqlConn::info_query()// 行为审计的一些配置
+{
+
+ 
+	mysql_query(&m_sqlCon, "SET NAMES GB2312"); 
+	if (mysql_query(&m_sqlCon, "select * from BehavioralAudit")) {
+		std::cout << "查询BehavioralAudit失败" << std::endl;
+		::MessageBox(NULL, "查询BehavioralAudit失败", "qq", 0);
+	}
+	else
+	{
+		std::cout << "查询BehavioralAudit成功" << std::endl;
+		//::MessageBox(NULL, "查询BehavioralAudit成功", "qq", 0);
+	}
+	MYSQL_RES *result;//获得结果集
+	result = mysql_store_result(&m_sqlCon);
+	if (result)
+	{
+		my_ulonglong  row_num;
+		int col_num;
+		row_num = mysql_num_rows(result);
+		col_num = mysql_num_fields(result);
+		MYSQL_ROW sqlba_row;
+		string strTempROW;
+		//sqlba_row = mysql_fetch_row(result);
+		while (sqlba_row = mysql_fetch_row(result))
+		{
+			//::MessageBox(NULL, sqlba_row[1], "查询sqlba_row成功", 0);
+			strTempROW = sqlba_row[1];
+			if (strTempROW == "BAip")
+			{
+				//::MessageBox(NULL, sqlba_row[2], "查询BAip成功", 0);
+				mysqlBAip = sqlba_row[2];
+				//::MessageBox(NULL, mysqlBAip.c_str(), "查询BAip成功", 0);
+			}
+			else if (strTempROW == "BALogoutdDirectory") {
+				//::MessageBox(NULL, sqlba_row[2], "查询mysqlBALogoutdDirectory成功", 0);
+				mysqlBALogoutdDirectory = sqlba_row[2];
+				//::MessageBox(NULL, mysqlBALogoutdDirectory.c_str(), "查询mysqlBALogoutdDirectory成功", 0);
+			}
+			else if (strTempROW == "BALogoutT") {
+				//::MessageBox(NULL, sqlba_row[2], "查询mysqlBALogoutT成功", 0);
+				mysqlBALogoutT = sqlba_row[2];
+				//::MessageBox(NULL, mysqlBALogoutT.c_str(), "查询mysqlBALogoutT成功", 0);
+			}
+			else if (strTempROW == "BALOginDirectory") {
+				//::MessageBox(NULL, sqlba_row[2], "查询mysqlBALOginDirectory成功", 0);
+				mysqlBALOginDirectory = sqlba_row[2];
+				//::MessageBox(NULL, mysqlBALOginDirectory.c_str(), "查询mysqlBALOginDirectory成功", 0);
+			}
+			else if (strTempROW == "BALLoginDt") {
+				//::MessageBox(NULL, sqlba_row[2], "查询mysqlBALLoginDt成功", 0);
+				mysqlBALLoginDt = sqlba_row[2];
+				//::MessageBox(NULL, mysqlBALLoginDt.c_str(), "查询mysqlBALLoginDt成功", 0);
+			}
+
+		} //endwhile
+		return true;
+	}//endif 
+	else
+	{
+		return false;
+	}
+
+}
+
 bool MySqlConn::user_query(string strSQL)
 {
 	 
 	char query[255];
 	//sprintf_s(query, sizeof(query), "select * from CarTable where CarNumber=md5(\"_Z&%sl^_\")", strSQL.c_str()); 
-	sprintf_s(query, sizeof(query), "select * from CarTable where CarNumber=\"%s\" ", strSQL.c_str());
+	sprintf_s(query, sizeof(query), "select id,CarNumber,UserName,nickname,AES_DECRYPT(UserPW ,'Dust')as UserPW  from CarTable where CarNumber=\"%s\" ", strSQL.c_str());
 	//sprintf_s(query, sizeof(query), "select * from CarTable where CarNumber='%s'", strSQL.c_str());
 	::MessageBox(NULL, query, "query", 0);
-	//mysql_query(&m_sqlCon, "SET NAMES UTF8"); 
-	mysql_query(&m_sqlCon, "SET NAMES GB2312");//用这个
+	mysql_query(&m_sqlCon, "SET NAMES GB2312"); 
+	//mysql_query(&m_sqlCon, "SET NAMES GB2312");//用这个
 											   //mysql_query(&m_sqlCon, "SET NAMES 'Latin1'");
 	if (mysql_query(&m_sqlCon, query)) {
 		std::cout << "查询失败" << std::endl;
@@ -170,8 +236,8 @@ bool MySqlConn::user_update(char *chpw)
 	//}
 	mysql_query(&m_sqlCon, "SET NAMES GB2312");//用这个
 	//::MessageBox(NULL, chpw, TEXT("321"), 0);
-	sprintf_s(query, sizeof(query), "update CarTable set UserPW='%s' where CarNumber='%s'", chpw, GetCarNumber.c_str() );
-	//::MessageBox(NULL, query, TEXT("321"), 0);
+	sprintf_s(query, sizeof(query), "update CarTable set UserPW=AES_ENCRYPT('%s','Dust') where CarNumber='%s'", chpw, GetCarNumber.c_str() );
+	::MessageBox(NULL, query, TEXT("321"), 0);
 	if (mysql_query(&m_sqlCon, query)) {
 		std::cout << "修改失败" << std::endl; 
 		return false;
