@@ -332,6 +332,7 @@ BOOL CCommandWindow::GetConnectedStatus()
 					::ShowWindow(_hWndButtonBack, SW_NORMAL);
 					::ShowWindow(_hWndLab, SW_NORMAL);
 					//SendMessage(_hWnd, BM_CLICK, 0, 0);
+					//SetFocus(_hWndButton);
 					empPWCT = true;
 					while (empPWCT)
 					{
@@ -389,6 +390,8 @@ BOOL CCommandWindow::GetConnectedStatus()
 							memset(cLogin, 0, sizeof(cLogin));
 							strcpy_s(cLogin, "请输入密码验证！...");
 							InvalidateRect(_hWnd, NULL, true);//InvalidateRect发送区域失效， 产生WM_PAINT消息，重绘失效区域
+
+							//SetFocus(_hWndButton);
 						} 
 							 
 						while (empPWCT)
@@ -811,7 +814,7 @@ BOOL CCommandWindow::_ProcessNextMessage()
 			//取edit内容用  GetDlgItemText(_hWndEDIT, nEditID, szString, nMax);也可以
 			SendMessage(_hWndEDIT, WM_GETTEXT, sizeof(getUpw) / sizeof(TCHAR), (LPARAM)(void*)getUpw);//WM_GETTEXT（获取edit中的所有文字）
 			//::MessageBox(NULL, getUpw, TEXT("用户密码"), 0);
-			if (strlen(getUpw) > 8)
+			if (strlen(getUpw) > 7)
 			{
 				//先注销HTTP
 				http->getData(BAip, BALogoutdDirectory, BALogoutT);
@@ -860,6 +863,8 @@ BOOL CCommandWindow::_ProcessNextMessage()
 					memset(cLogin, 0, sizeof(cLogin));
 					strcpy_s(cLogin, "密码验证失败请重新验证！...");
 					InvalidateRect(_hWnd, NULL, true);//InvalidateRect发送区域失效， 产生WM_PAINT消息，重绘失效区域
+					::SetWindowText(_hWndEDIT, "");
+					//SetFocus(_hWndButton);
 				}
 
 
@@ -874,6 +879,7 @@ BOOL CCommandWindow::_ProcessNextMessage()
 				strcpy_s(cLogin, "");
 				InvalidateRect(_hWnd, NULL, true);//InvalidateRect发送区域失效， 产生WM_PAINT消息，重绘失效区域
 												  //::MessageBox(NULL, "isOK", "isOK", 0);
+				//::SetWindowText(_hWndEDIT, "");
 			}
 
 		}
@@ -896,6 +902,9 @@ BOOL CCommandWindow::_ProcessNextMessage()
 			boolGetBack = true;
 		}
 
+	//case WM_SETFOCUS:
+		//SetFocus(_hWndButton);//该函数对指定的窗口设置键盘焦点
+		 
 
     }
     return TRUE;
