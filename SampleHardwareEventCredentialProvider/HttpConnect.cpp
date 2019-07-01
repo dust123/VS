@@ -105,7 +105,7 @@ bool HttpConnect::socketHttp(std::string host, std::string request,bool boolGET)
 		else
 		{
 			boolGET = false;
-			::MessageBox(NULL, "ÓÃ»§µÇÂ¼»¥ÁªÍøÐÐÎªÉó¼ÆÊ§°Ü", TEXT("boolGET"), 0);
+			//::MessageBox(NULL, "ÓÃ»§µÇÂ¼»¥ÁªÍøÐÐÎªÉó¼ÆÊ§°Ü", TEXT("boolGET"), 0);
 		}
 		
 	}
@@ -135,7 +135,7 @@ bool HttpConnect::postData(std::string host, std::string path, std::string post_
 	}
 	else
 	{
-		::MessageBox(NULL, "ÓÃ»§µÇÂ¼»¥ÁªÍøÐÐÎªÉó¼ÆÊ§°Ü", TEXT("postData"), 0);
+		//::MessageBox(NULL, "ÓÃ»§µÇÂ¼»¥ÁªÍøÐÐÎªÉó¼ÆÊ§°Ü", TEXT("postData"), 0);
 		return false;
 	}
 }
