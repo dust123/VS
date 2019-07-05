@@ -40,6 +40,7 @@ bool MySqlConn::info_query()// 行为审计的一些配置
 	if (mysql_query(&m_sqlCon, "select * from BehavioralAudit")) {
 		std::cout << "查询BehavioralAudit失败" << std::endl;
 		::MessageBox(NULL, "查询BehavioralAudit失败", "qq", 0);
+		return false;
 	}
 	else
 	{
@@ -220,6 +221,92 @@ bool MySqlConn::user_insert(char *chSQL)
 		}*/
 		return true;
 	}
+}
+
+bool MySqlConn::user_Print(string strGetMachineInfo)
+{
+	
+	char chGetMachineInfo[250];
+	char *sqlTime, *sqlMachineName, *sqlIP, *sqlMAC;
+
+	memset(chGetMachineInfo, 0, sizeof(chGetMachineInfo));
+	strcpy_s(chGetMachineInfo, strGetMachineInfo.c_str()); //string 到char[]
+	sqlTime = strtok(chGetMachineInfo, "^");
+	sqlMachineName = strtok(NULL, "^");
+	sqlIP = strtok(NULL, "^");
+	sqlMAC = strtok(NULL, "^");
+	mysql_query(&m_sqlCon, "SET NAMES GB2312");
+	//::MessageBox(NULL, "进入userPrint", "insert", 0);
+	//::MessageBox(NULL, strGetMachineInfo.c_str(), "insert", 0);
+	char select_user[500];
+	MYSQL_RES *result;
+	sprintf_s(select_user, sizeof(select_user), "select * from PrintUser where MachineMAC='%s'", sqlMAC);
+	if (mysql_query(&m_sqlCon, select_user) || !(result = mysql_store_result(&m_sqlCon))  ) {
+		std::cout << "修改查询失败" << std::endl; 
+		::MessageBox(NULL, "修改查询失败", "insert", 0);
+	}
+	if (mysql_num_rows(result) == 1) {
+		memset(select_user, 0, sizeof(select_user));
+		if ("" == GetCarNumber) 
+		{
+			sprintf_s(select_user, sizeof(select_user), "update PrintUser set PuTime=\"%s\",PrintMark=\"%s\"  where MachineMAC=\"%s\"", sqlTime, "off", sqlMAC);
+			 
+		}
+		else
+		{
+			sprintf_s(select_user, sizeof(select_user), "update PrintUser set MachineName=\"%s\",MachineIP=\"%s\",CarNumber=\"%s\",PrintUserNickName=\"%s\",PrintUserName=\"%s\",PuTime=\"%s\",PrintMark=\"%s\"  where MachineMAC=\"%s\"", sqlMachineName, sqlIP, GetCarNumber.c_str(), GetNickNume.c_str(), GetUserNames.c_str(), sqlTime, "on", sqlMAC);
+			 
+		}
+		
+
+		//::MessageBox(NULL, select_user, TEXT("update"), 0);
+		if (mysql_query(&m_sqlCon, select_user)) {
+			std::cout << "更新失败" << std::endl;
+			::MessageBox(NULL, "更新失败", "insert", 0);
+			return false;
+		}
+		else
+		{
+			return true;
+		}
+
+	}
+	else {
+
+		//::MessageBox(NULL, "insert", "insert", 0);
+		//::MessageBox(NULL, sqlMachineName, "insert", 0);
+		//::MessageBox(NULL, sqlMAC, "insert", 0);
+		//::MessageBox(NULL, sqlIP, "insert", 0);
+		//::MessageBox(NULL, GetCarNumber.c_str(), "insert", 0);
+		//::MessageBox(NULL, GetNickNume.c_str(), "insert", 0);
+		//::MessageBox(NULL, GetUserNames.c_str(), "insert", 0);
+		//::MessageBox(NULL, sqlTime, "insert", 0);
+		memset(select_user, 0, sizeof(select_user));
+
+		if ("" == GetCarNumber)
+		{
+			sprintf_s(select_user, sizeof(select_user), "insert into PrintUser(MachineName,MachineMAC,MachineIP,PuTime,PrintMark)values( \"%s\",\"%s\",\"%s\",\"%s\",\"%s\");", sqlMachineName, sqlMAC, sqlIP,  sqlTime, "off");
+		 
+		}
+		else
+		{
+			sprintf_s(select_user, sizeof(select_user), "insert into PrintUser(MachineName,MachineMAC,MachineIP,CarNumber,PrintUserNickName,PrintUserName,PuTime,PrintMark)values( \"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\");", sqlMachineName, sqlMAC, sqlIP, GetCarNumber.c_str(), GetNickNume.c_str(), GetUserNames.c_str(), sqlTime, "on");
+		 
+		}
+
+		//::MessageBox(NULL, select_user, TEXT("user_Printinsert"), 0);
+		if (mysql_query(&m_sqlCon, select_user)) {
+			std::cout << "插入数据失败" << std::endl;
+			return false;
+		}
+		else
+		{
+			return true;
+		}
+	}
+	//return true;
+
+
 }
 
 bool MySqlConn::user_update(char *chpw)

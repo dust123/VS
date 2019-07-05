@@ -30,7 +30,8 @@ public:
     ~CCommandWindow(void);
     HRESULT Initialize(CSampleProvider *pProvider);
     BOOL GetConnectedStatus();
-	BOOL AnalysisFile();
+	BOOL AnalysisFile(string FilePath);
+	string GetProgramDir();
 	string MachineInfo();
 private:
     HRESULT _MyRegisterClass(void);

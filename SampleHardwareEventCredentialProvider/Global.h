@@ -10,4 +10,5 @@ extern string strUser;
 extern string strlogUser ;          //每个审计用户(登录的用户)
 extern string strlogUserPW;
 extern int isopenCOM;
+extern int initialization;
 #endif 

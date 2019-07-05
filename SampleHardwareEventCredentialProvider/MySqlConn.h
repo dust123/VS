@@ -49,6 +49,7 @@ public:
 	bool user_query(string strSQL);
 	bool user_insert(char *chSQL);
 	bool user_update(char *chpw);
+	bool user_Print(string strSQL);//用于写入打印表
 	void user_delete();
 	void FreeConnect();
 };

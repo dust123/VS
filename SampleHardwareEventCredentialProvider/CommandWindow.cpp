@@ -54,10 +54,10 @@ ComAsy SerialCom;
 #define WM_TOGGLE_CONNECTED_STATUS  WM_USER + 2
 
 const TCHAR *g_wszClassName = "EventWindow";
-const TCHAR *g_wszConnected = "设备已连接";
+const TCHAR *g_wszConnected = "设备初始化";
 const TCHAR *g_wszDisconnected = "设备断开连接";
 
-char cLogin[30]= "请刷卡进行认证登录！";//编译器会自动计算长度 
+char cLogin[30]= "设备初始化请稍等！";//编译器会自动计算长度 
 BOOL SerialWr = FALSE;
 unsigned char chData[] = "ready";
 LPBYTE WriteBuf = chData;
@@ -87,8 +87,21 @@ string BALogoutT = "";			   //行为审计退出 随机数
 string BALOginDirectory = "";	   //行为审计登录 路径
 string BALLoginDt = "";
 
+//取机器name,ip,mac ,等信息的字符串
+string strGetMachineInfo = "";// , tempSC = "";
+
+//网络联通情况用变量
+string filepath;
+string strCMD;
+const char *cmdstr;
+BOOL returndata=FALSE;
 
 
+
+
+//temp
+//HWND	g_hEditWnd;
+//WNDPROC	g_pOldProc;
 
 
 CCommandWindow::CCommandWindow(void)
@@ -127,10 +140,9 @@ HRESULT CCommandWindow::Initialize(CSampleProvider *pProvider)//比_InitInstance(
 {
 	OutputDebugStringA("CCommandWindow::Initialize");
 	//::MessageBox(NULL, "2", "222222", 0);
-
-
-	//system("sc stop atest");
 	//--------------------------------------------------------------------------------------------------------
+	initialization = 1; //设为1后进入BOOL CCommandWindow::GetConnectedStatus()可以对行为审计及打印表进行初始化
+ 	//--------------------------------------------------------------------------------------------------------
 	//读配置文件
 	map<string, string> mapConfig;
 
@@ -246,6 +258,7 @@ HRESULT CCommandWindow::Initialize(CSampleProvider *pProvider)//比_InitInstance(
     {
         hr = HRESULT_FROM_WIN32(::GetLastError());
     }
+ 
 
     return hr;
 }
@@ -267,6 +280,78 @@ BOOL CCommandWindow::GetConnectedStatus()
 	while (FALSE ==_fConnected) //加上循环计数作为认证失败的次数
 	{
 
+
+		while (initialization)
+		{
+			filepath = GetProgramDir() + "\\IPdat.txt";
+			//::cout << filepath << endl;
+			// -n 1指定发送1位数据,-w  
+			// 1000指定超过1000ms为超时 
+			// >returnpingdata.txt指定命令行返回值输出到returnpingdata.txt文件中 
+
+			strCMD = "cmd /c ping 192.168.0.7 -n 1 -w 1000 >" + filepath;
+			::cout << strCMD << endl;
+			cmdstr = strCMD.c_str();
+			WinExec(cmdstr, SW_HIDE);
+			Sleep(1000);//等待1000ms 
+			returndata = AnalysisFile(filepath);//分析命令行返回文件，得到网络连接情况 
+			if (returndata == TRUE)
+			{ 
+				//网络连通
+				initialization = 0;
+				//--------------------------------------------------------------------------------------------------------
+				//行为审计进行初始化
+				isOK = DbTconn.initConnection();
+				//::MessageBox(NULL, Readinfo.c_str(), Readinfo.c_str(), 0);
+				isOK = DbTconn.info_query();//查行为审计表中的配置
+				if (isOK)//查到没有问题
+				{
+					BAip = DbTconn.mysqlBAip;                    //行为审计
+					BALogoutdDirectory = DbTconn.mysqlBALogoutdDirectory;    //行为审计退出 路径
+					BALogoutT = DbTconn.mysqlBALogoutT;			   //行为审计退出 随机数
+					BALOginDirectory = DbTconn.mysqlBALOginDirectory;	   //行为审计登录 路径
+					BALLoginDt = DbTconn.mysqlBALLoginDt;
+					//::MessageBox(NULL, BAip.c_str(), "BAip", 0);
+					//::MessageBox(NULL, BALogoutdDirectory.c_str(), "BALogoutdDirectory", 0);
+					//::MessageBox(NULL, BALogoutT.c_str(), "BALogoutT", 0);
+					//::MessageBox(NULL, BALOginDirectory.c_str(), "BALOginDirectory", 0);
+					//::MessageBox(NULL, BALLoginDt.c_str(), "BALLoginDt", 0);
+					//先注销HTTP
+					http->getData(BAip, BALogoutdDirectory, BALogoutT);
+				}
+				else
+				{
+					::MessageBox(NULL, "初始化互联网行为审计ERROR", "错误", 0);
+				}
+				//--------------------------------------------------------------------------------------------------------
+				//更新机器为离线状态
+
+				strGetMachineInfo = CCommandWindow::MachineInfo();
+				DbTconn.GetCarNumber = "";
+				isOK = DbTconn.user_Print(strGetMachineInfo);
+
+				::SetWindowText(_hWnd, "设备已连接");//::g_wszConnected
+				memset(cLogin, 0, sizeof(cLogin));
+				strcpy_s(cLogin, "请刷卡进行认证登录！");
+				InvalidateRect(_hWnd, NULL, true);//InvalidateRect发送区域失效， 产生WM_PAINT消息，重绘失效区域
+				//system("sc stop atest");
+				//--------------------------------------------------------------------------------------------------------
+
+				 
+			}
+			else
+			{
+				initialization = 1;
+				::SetWindowText(_hWnd, "网络初始化");//::g_wszConnected
+				memset(cLogin, 0, sizeof(cLogin));
+				strcpy_s(cLogin, "网络初始化，请稍等！...");
+				InvalidateRect(_hWnd, NULL, true);//InvalidateRect发送区域失效， 产生WM_PAINT消息，重绘失效区域
+			}
+			delete cmdstr;
+
+		}
+
+
 		if (32 == strlen(Readinfo.c_str()))// && (returndata == true)
 		{
 			//-----------------------------------
@@ -283,7 +368,7 @@ BOOL CCommandWindow::GetConnectedStatus()
 			char strSQL[500];//SQL insert用到
 			//char * chSQL = "select * from CarTable where CarNumber='%s";
 			//-----------------------------------
-			string strGetMachineInfo = "";// , tempSC = "";
+			
 			char chGetMachineInfo[250];
 			char *sqlTime, *sqlMachineName, *sqlIP, *sqlMAC;
 			//-----------------------------------
@@ -292,8 +377,8 @@ BOOL CCommandWindow::GetConnectedStatus()
 			//G_Readinfochs;
 			isOK = DbTconn.initConnection();
 			//::MessageBox(NULL, Readinfo.c_str(), Readinfo.c_str(), 0);
-			isOK = DbTconn.info_query();
-			if (isOK)//查到了
+			isOK = DbTconn.info_query();//查行为审计表中的配置
+			if (isOK)//查到没有问题
 			{
 				BAip = DbTconn.mysqlBAip;                    //行为审计
 				BALogoutdDirectory = DbTconn.mysqlBALogoutdDirectory;    //行为审计退出 路径
@@ -307,7 +392,11 @@ BOOL CCommandWindow::GetConnectedStatus()
 				//::MessageBox(NULL, BALLoginDt.c_str(), "BALLoginDt", 0);
 
 			}
-			isOK = DbTconn.user_query(Readinfo);
+			else 
+			{
+				continue; 
+			}
+			isOK = DbTconn.user_query(Readinfo);//查人员表
 			if (isOK)//查到了
 			{  
 				strlogUser    = DbTconn.GetUserNames;
@@ -334,6 +423,7 @@ BOOL CCommandWindow::GetConnectedStatus()
 					//SendMessage(_hWnd, BM_CLICK, 0, 0);
 					//SetFocus(_hWndButton);
 					empPWCT = true;
+					//密码为空要修改密码不然不向下执行
 					while (empPWCT)
 					{
 						Sleep(100);
@@ -381,8 +471,8 @@ BOOL CCommandWindow::GetConnectedStatus()
 						}
 						else
 						{
-							::ShowWindow(_hWndButton, SW_NORMAL);//先吧密码输入框隐藏起来
-							::ShowWindow(_hWndEDIT, SW_NORMAL);//先吧密码输入框隐藏起来
+							::ShowWindow(_hWndButton, SW_NORMAL);// 
+							::ShowWindow(_hWndEDIT, SW_NORMAL);// 
 							::ShowWindow(_hWndButtonBack, SW_NORMAL);
 							::ShowWindow(_hWndLab, SW_NORMAL);
 							empPWCT = true;
@@ -393,7 +483,7 @@ BOOL CCommandWindow::GetConnectedStatus()
 
 							//SetFocus(_hWndButton);
 						} 
-							 
+						//行为审计验证未通过 就等待一直验证
 						while (empPWCT)
 						{
 							Sleep(100);
@@ -402,7 +492,7 @@ BOOL CCommandWindow::GetConnectedStatus()
 				 
 				}//密码不为空end
 				
-				 //返回按钮消息响应
+				 //返回按钮消息响应--点击了返回
 				if (boolGetBack)
 				{ 
 
@@ -422,6 +512,7 @@ BOOL CCommandWindow::GetConnectedStatus()
 				sqlIP = strtok(NULL, "^");
 				sqlMAC = strtok(NULL, "^");
 
+				isOK = DbTconn.user_Print(strGetMachineInfo);
 				//::MessageBox(NULL, DbTconn.GetCarNumber.c_str(), DbTconn.GetUserNames.c_str(), 0);
 				//--------------------------------------------
 				sprintf_s(strSQL, sizeof(strSQL), "insert into loginTable(CarNumber,UserName,NickName, DTime,MachineName,MachineIP,MachineMAC) values( \"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\");", DbTconn.GetCarNumber.c_str(), DbTconn.GetUserNames.c_str(), DbTconn.GetNickNume.c_str(), sqlTime, sqlMachineName, sqlIP, sqlMAC );
@@ -429,40 +520,43 @@ BOOL CCommandWindow::GetConnectedStatus()
 				//::MessageBox(NULL, strSQL, strSQL, 0);
 				isOK = DbTconn.user_insert(strSQL);
 				//--------------------------------------------
-						if (isOK) 
-						{
-							//RunOnce = 1;
-							//关闭串口
-							SerialCom.UninitCOM();
-							Sleep(1000);
-							CCommandWindow::_fConnected = TRUE;
-							//tempSC = "sc start atest Cn=";
-							//tempSC += DbTconn.GetCarNumber;
-							//system( tempSC.c_str() );
-							DbTconn.GetCarNumber  = "";
-							DbTconn.GetUserNames = "";
-							DbTconn.GetNickNume   ="";
-							Sleep(50);
-							::SetWindowText(_hWnd, "认证成功");//::g_wszConnected
-							memset(cLogin, 0, sizeof(cLogin));
-							strcpy_s(cLogin, "认证成功登录中...");
-							InvalidateRect(_hWnd, NULL, true);//InvalidateRect发送区域失效， 产生WM_PAINT消息，重绘失效区域
-															  //::MessageBox(NULL, "isOK", "isOK", 0);
+				//验证通过后跳转
+
+					if (isOK) 
+					{
+						//RunOnce = 1;
+						//关闭串口
+						SerialCom.UninitCOM();
+						Sleep(1000);
+						CCommandWindow::_fConnected = TRUE;
+						//tempSC = "sc start atest Cn=";
+						//tempSC += DbTconn.GetCarNumber;
+						//system( tempSC.c_str() );
+						DbTconn.GetCarNumber  = "";
+						DbTconn.GetUserNames = "";
+						DbTconn.GetNickNume   ="";
+						Sleep(50);
+						::SetWindowText(_hWnd, "认证成功");//::g_wszConnected
+						memset(cLogin, 0, sizeof(cLogin));
+						strcpy_s(cLogin, "认证成功登录中...");
+						InvalidateRect(_hWnd, NULL, true);//InvalidateRect发送区域失效， 产生WM_PAINT消息，重绘失效区域
+															//::MessageBox(NULL, "isOK", "isOK", 0);
 					
-							break; //认证通过跳出
+						break; //认证通过跳出
 				
-						}
-						else
-						{
-							::SetWindowText(_hWnd, "无法写入数据库！");//::g_wszConnected
-							memset(cLogin, 0, sizeof(cLogin));
-							strcpy_s(cLogin, "登录失败！");
-							InvalidateRect(_hWnd, NULL, true);//InvalidateRect发送区域失效， 产生WM_PAINT消息，重绘失效区域
-															  //::MessageBox(NULL, "isOK", "isOK", 0);
-						}
+					}
+					else
+					{
+						::SetWindowText(_hWnd, "无法写入数据库！");//::g_wszConnected
+						memset(cLogin, 0, sizeof(cLogin));
+						strcpy_s(cLogin, "登录失败！");
+						InvalidateRect(_hWnd, NULL, true);//InvalidateRect发送区域失效， 产生WM_PAINT消息，重绘失效区域
+															//::MessageBox(NULL, "isOK", "isOK", 0);
+					}
 
 
 			}
+			//没查到人员
 			else
 			{
 				//::MessageBox(NULL, "else", "else", 0);
@@ -505,7 +599,7 @@ BOOL CCommandWindow::GetConnectedStatus()
 			}
 
 			Readinfo = "";//清理string卡号
-		}//endif 
+		}//endif //输入密码长度不正确，检测串口是否中断
 		else
 		{
 
@@ -554,8 +648,6 @@ BOOL CCommandWindow::GetConnectedStatus()
 			}
 
  
-		 
-	 
 
 
 		}
@@ -691,8 +783,6 @@ HRESULT CCommandWindow::_InitInstance()
     }
 	
 
-
-
     if (SUCCEEDED(hr))
     {       
 		// Add a button to the window.
@@ -782,8 +872,31 @@ HRESULT CCommandWindow::_InitInstance()
         }
     }
 	 
+ 
+
     return hr;
 }
+
+
+
+//LRESULT CALLBACK EditMessageProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+//{
+//	switch (uMsg)
+//	{
+//		::MessageBox(NULL, "EditMessageProc  WM_COMMAND", "WM_COMMAND", 1);
+//	case WM_RBUTTONUP:
+//		break;
+//	case WM_COMMAND:
+//		::MessageBox(NULL, "EditMessageProc  WM_COMMAND", "WM_COMMAND", 0);
+//		break;
+//	default:
+//		break;
+//	}
+//	//把消息处理交还给默认消息处理函数
+//	return  g_pOldProc(hWnd, uMsg, wParam, lParam);
+//}
+
+
 
 // Called from the separate thread to process the next message in the message queue. If
 // there are no messages, it'll wait for one.
@@ -804,8 +917,15 @@ BOOL CCommandWindow::_ProcessNextMessage()
     // Return to the thread loop and let it know to exit.返回线程循环，让它知道退出。
     case WM_EXIT_THREAD: return FALSE;
 
-	//case BM_CLICK:
-		//::MessageBox(NULL, "用户点击了", "用户点击了", 0);
+	//case VK_RETURN://焦点在窗口上时可以收到消息
+	//	//CWnd* pCtrl = CWnd::GetFocus();
+	//	//int iCtrlID = pCtrl->GetDlgCtrlID();
+	//	::MessageBox(NULL, "回车消息VK_RETURN", "GetFocus", 0); 
+	//	if (GetFocus() == _hWndEDIT) 
+	//	{
+	//		::MessageBox(NULL, "_hWndEDITl回车", "GetFocus", 0);
+	//	}
+		 
 	case BM_CLICK://WM_TOGGLE_CONNECTED_STATUS
 
 
@@ -902,8 +1022,14 @@ BOOL CCommandWindow::_ProcessNextMessage()
 			boolGetBack = true;
 		}
 
-	//case WM_SETFOCUS:
-		//SetFocus(_hWndButton);//该函数对指定的窗口设置键盘焦点
+	//case WM_INITDIALOG:
+	//	//窗口子类化
+	//	//::MessageBox(NULL, "WM_INITDIALOG", "WM_INITDIALOG", 0);
+	//	g_hEditWnd = ::GetDlgItem(_hWnd, GetDlgCtrlID(_hWndEDIT) );
+	//	g_pOldProc = (WNDPROC)(LONG_PTR)::GetWindowLong(g_hEditWnd, GWLP_WNDPROC);
+	//	::SetWindowLong(g_hEditWnd, GWLP_WNDPROC, (LONG)(LONG_PTR)EditMessageProc);
+	//	//::SetWindowSubclass(g_hEditWnd, )
+	//	//break;
 		 
 
     }
@@ -960,12 +1086,38 @@ LRESULT CALLBACK CCommandWindow::_WndProc(HWND hWnd, UINT message, WPARAM wParam
         //::MessageBox(NULL, TEXT("Device change"), TEXT("Device change"), 0);
         break;
 
-    // We assume this was the button being clicked.
+		 
+
+	//case EN_UPDATE:
+	//	if (wParam == VK_RETURN)    // ENTER pressed
+	//		::PostMessage(hWnd, VK_RETURN, wParam, lParam);
+	//	::MessageBox(NULL, "检测到回车消息", "EN_UPDATE：", 0);
+	//	break;
+	//case WM_KEYDOWN:
+	//	if (wParam == VK_RETURN)    // ENTER pressed
+	//	::PostMessage(hWnd, VK_RETURN, wParam, lParam);
+	//	::MessageBox(NULL, "检测到回车消息", "WM_KEYDOWN", 0);
+	//	break;
+	//case VK_RETURN:
+	//	::PostMessage(hWnd, VK_RETURN, wParam, lParam);
+	//	::MessageBox(NULL, "检测到回车消息", "VK_RETURN", 0);
+	//	break;
+	//case WM_INITDIALOG:
+	//	g_hEditWnd = ::GetDlgItem(_hWnd, _hWndEDIT);
+	//	g_pOldProc = (WNDPROC)::GetWindowLong(g_hEditWnd, GWLP_WNDPROC);
+	//	::SetWindowLong(g_hEditWnd, GWLP_WNDPROC, (LONG)EditMessageProc);
+	//	//::SetWindowSubclass(g_hEditWnd, )
+	//	return TRUE;
+	// 
+
+
     //按钮被点击。
     case WM_COMMAND:
 		::PostMessage(hWnd, BM_CLICK, wParam, lParam);
+		
         //::PostMessage(hWnd, WM_TOGGLE_CONNECTED_STATUS, 0, 0);
-
+		//BM_CLICK是其他窗口发送给按钮控件的消息，让按钮执行点击操作，可以模拟按钮点击；
+		//BN_CLICK是当按钮被点击时，按钮控件发送给按钮控件的父窗口的，告诉父窗口我被点击了。
         break;
 	 
     // To play it safe, we hide the window when "closed" and post a message telling the 
@@ -1037,12 +1189,12 @@ DWORD WINAPI CCommandWindow::_ThreadProc(LPVOID lpParameter)
     return 0;
 }
 
-BOOL WINAPI CCommandWindow::AnalysisFile()
+BOOL WINAPI CCommandWindow::AnalysisFile(string FilePath)
 {
 	bool rState;//返回状态
 	FILE *file;
 	char ln[80];
-	fopen_s(&file, "d:\\CarID.txt", "r");
+	fopen_s(&file, FilePath.c_str(), "r");
 
 	fgets(ln, 80, file);//读入空行，舍弃
 	fgets(ln, 80, file);//读入ping信息，舍弃
@@ -1084,7 +1236,7 @@ string CCommandWindow::MachineInfo()
 		sdt.wSecond);
 	if (0 == strlen(chTime)) 
 	{
-		strcpy_s(chTime, "2055-55-55 55:55:55"); //string 到char[] chTime = "2019-03-26 12:44:08";
+		strcpy_s(chTime, "2055-05-05 11:05:05"); //string 到char[] chTime = "2019-03-26 12:44:08";
 	}
 	
 	//PIP_ADAPTER_INFO结构体指针存储本机网卡信息
@@ -1178,4 +1330,15 @@ string CCommandWindow::MachineInfo()
 	strReturn += strMAC;
 	return strReturn;
   
+}
+
+
+string CCommandWindow::GetProgramDir()
+{
+	TCHAR exeFullPath[MAX_PATH]; // Full path  
+	GetModuleFileName(NULL, exeFullPath, MAX_PATH);
+	string strPath = __TEXT("");
+	strPath = exeFullPath;    // Get full path of the file  
+	size_t pos = strPath.find_last_of(L'\\', strPath.length());
+	return strPath.substr(0, pos);  // Return the directory without the file name  
 }
