@@ -80,21 +80,20 @@ bool HttpConnect::socketHttp(std::string host, std::string request,bool boolGET)
 	//cout << buf << std::endl;
 	int intFindOne=0, intFindTow=0;
 	string  strDatabuf; 
+
+	
+
 	if (boolGET) {
 		strDatabuf = buf;
 		//strData = (string)buf;
+		//::MessageBox(NULL, strDatabuf.c_str(), TEXT("postData"), 0);
 		intFindOne = (int)strDatabuf.find("%E7", 0);/*×Ö·û²éÕÒ*/
 		intFindTow = (int)strDatabuf.find("authfailed", 0);/*×Ö·û²éÕÒ*/
 		//cout << "aaaaa: " << offisetpre << endl;
 		//isfind = memchr(buf, '%E7', sizeof(buf));
 		//isfindstr = memchr(buf, 'fail', sizeof(buf));
-	}
 
-
-	delete[]buf;
-
-	if (boolGET) 
-	{
+	    delete[]buf;
 
 		if ((-1 == intFindOne) && ( -1 == intFindTow))
 		{
@@ -126,6 +125,9 @@ bool HttpConnect::postData(std::string host, std::string path, std::string post_
 	stream << "Content-Length:" << post_content.length() << "\r\n";
 	stream << "Connection:close\r\n\r\n";
 	stream << post_content.c_str();
+
+	//::MessageBox(NULL, stream.str().c_str(), TEXT("postData"), 0);
+
 	bool temp = false;
 	temp = socketHttp(host, stream.str(), true);
 	if (temp)

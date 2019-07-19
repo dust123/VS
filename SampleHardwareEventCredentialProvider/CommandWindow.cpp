@@ -73,6 +73,8 @@ HttpConnect *http = new HttpConnect();
 
 //存用户密码
 char getUpw[1024];//取用户输入信息
+
+
 bool empPWCT = true;//控制用户输入密码后是否向下执行
 //返回按钮被点击是否跳出循环，进行下一个轮回
 bool boolGetBack = false;
@@ -928,6 +930,10 @@ BOOL CCommandWindow::_ProcessNextMessage()
 		 
 	case BM_CLICK://WM_TOGGLE_CONNECTED_STATUS
 
+		string strUserPW;//取用户输入信息
+		string strFind = "+";////要查找的串，可根据要求替换
+		string strT = "%2b";
+		size_t pos;
 
 		if ((HWND)msg.lParam == _hWndButton)
 		{		
@@ -940,10 +946,24 @@ BOOL CCommandWindow::_ProcessNextMessage()
 				http->getData(BAip, BALogoutdDirectory, BALogoutT);
 				 
 				//if(getUpw == DbTconn.GetUserPW)
-				//::MessageBox(NULL, "intstrlen(getUpw)", TEXT("EDIT的WM_COMMAND消息"), 0);
+				//::MessageBox(NULL, getUpw, TEXT("用户密码"), 0);
 				 
 				//sprintf_s(chhttpPOST, sizeof(chhttpPOST), "username=%s&password=%s&pwd=%s&secret=true", strlogUser.c_str(), getUpw, getUpw);
-				sprintf_s(chhttpPOST, sizeof(chhttpPOST), BALLoginDt.c_str(), strlogUser.c_str(), getUpw, getUpw);
+				//sprintf_s(chhttpPOST, sizeof(chhttpPOST), "username=lulanglang&password=11111111+a&pwd=11111111+a&secret=true");
+				//------------------
+				//字符串替换 - 修正“+”为post特殊字符  无法正常提交+号
+				 
+				strUserPW = getUpw;
+				pos = strUserPW.find(strFind);////查找指定的串
+				while (pos != -1)
+				{
+					strUserPW.replace(pos, strFind.length(), strT);////用新的串替换掉指定的串
+
+					pos = strUserPW.find(strFind);//////继续查找指定的串，直到所有的都找到为止
+				}
+				//cout << strUserPW << endl;
+				//------------------
+				sprintf_s(chhttpPOST, sizeof(chhttpPOST), BALLoginDt.c_str(), strlogUser.c_str(), strUserPW.c_str(), strUserPW.c_str());
 				//::MessageBox(NULL, chhttpPOST, TEXT("chhttpPOST消息"), 0);
 				http->BoolHttpback = http->postData(BAip, BALOginDirectory, chhttpPOST);
 				//http->BoolHttpback = http->postData("192.168.0.11", "/webAuth/", "username=lulanglang&password=12345678-l&pwd=12345678-l&secret=true");
@@ -1004,7 +1024,7 @@ BOOL CCommandWindow::_ProcessNextMessage()
 
 		}
         
-		//返回按钮消息响应
+		//接收PostMessage(hWnd, BM_CLICK, wParam, lParam)   返回按钮消息响应
 		if ((HWND)msg.lParam == _hWndButtonBack)
 		{
 			::ShowWindow(_hWndButton, SW_HIDE);//先吧密码输入框隐藏起来
@@ -1093,22 +1113,24 @@ LRESULT CALLBACK CCommandWindow::_WndProc(HWND hWnd, UINT message, WPARAM wParam
 	//		::PostMessage(hWnd, VK_RETURN, wParam, lParam);
 	//	::MessageBox(NULL, "检测到回车消息", "EN_UPDATE：", 0);
 	//	break;
-	//case WM_KEYDOWN:
+	//case WM_KEYDOWN://这个WM_KEYDOWN是对应的整个窗体的要退出edit焦点在窗体上才生效
 	//	if (wParam == VK_RETURN)    // ENTER pressed
 	//	::PostMessage(hWnd, VK_RETURN, wParam, lParam);
-	//	::MessageBox(NULL, "检测到回车消息", "WM_KEYDOWN", 0);
+	//	::MessageBox(NULL, "通过WM_KEYDOWN检测到回车消息", "WM_KEYDOWN", 0);
 	//	break;
 	//case VK_RETURN:
 	//	::PostMessage(hWnd, VK_RETURN, wParam, lParam);
 	//	::MessageBox(NULL, "检测到回车消息", "VK_RETURN", 0);
 	//	break;
-	//case WM_INITDIALOG:
-	//	g_hEditWnd = ::GetDlgItem(_hWnd, _hWndEDIT);
-	//	g_pOldProc = (WNDPROC)::GetWindowLong(g_hEditWnd, GWLP_WNDPROC);
-	//	::SetWindowLong(g_hEditWnd, GWLP_WNDPROC, (LONG)EditMessageProc);
-	//	//::SetWindowSubclass(g_hEditWnd, )
-	//	return TRUE;
-	// 
+	//case WM_INITDIALOG://当其对话框和子控件全部创建完毕   WM_CREATE是所有窗口都能响应的消息，表明本窗口已经创建完毕。在响应WM_CREATE消息响应函数的时候，对话框及子控件还未创建完成
+		//窗口子类化
+		//::MessageBox(NULL, "WM_INITDIALOG", "WM_INITDIALOG", 0);
+		//g_hEditWnd = ::GetDlgItem(_hWnd, GetDlgCtrlID(_hWndEDIT) );
+		//g_pOldProc = (WNDPROC)(LONG_PTR)::GetWindowLong(g_hEditWnd, GWLP_WNDPROC);
+		//::SetWindowLong(g_hEditWnd, GWLP_WNDPROC, (LONG)(LONG_PTR)EditMessageProc);
+		//::SetWindowSubclass(g_hEditWnd, )
+		//break;
+	 
 
 
     //按钮被点击。
