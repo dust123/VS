@@ -913,7 +913,7 @@ BOOL CCommandWindow::_ProcessNextMessage()
     (void) ::GetMessage(&(msg), _hWnd, 0, 0);
     (void) ::TranslateMessage(&(msg));
     (void) ::DispatchMessage(&(msg));
-
+	 
     switch (msg.message)
     {
     // Return to the thread loop and let it know to exit.返回线程循环，让它知道退出。
@@ -927,7 +927,16 @@ BOOL CCommandWindow::_ProcessNextMessage()
 	//	{
 	//		::MessageBox(NULL, "_hWndEDITl回车", "GetFocus", 0);
 	//	}
-		 
+	case WM_KEYDOWN://EDIT内回车消息响应
+		if (msg.wParam == VK_RETURN)   //是回车   msg.lParam,msg.wParam,msg.hwnd // ENTER pressed    pMsg->wParam==VK_RETURN)
+		{
+			//::MessageBox(NULL, "通过WM_KEYDOWN检测到_hWndEDIT回车消息", "WM_KEYDOWN", 0);
+			::PostMessage(msg.hwnd, BM_CLICK, msg.wParam, (LPARAM)_hWndButton);  // 给_hWndButton 发 BM_CLICK 类型消息
+		}
+		//::PostMessage(hWnd, VK_RETURN, wParam, lParam);
+		//::MessageBox(NULL, "WM_KEYDOWN", "WM_KEYDOWN", 0);
+		break;  
+
 	case BM_CLICK://WM_TOGGLE_CONNECTED_STATUS
 
 		string strUserPW;//取用户输入信息
@@ -1043,7 +1052,7 @@ BOOL CCommandWindow::_ProcessNextMessage()
 		}
 
 	//case WM_INITDIALOG:
-	//	//窗口子类化
+	//	//窗口子类化_hWndEDIT
 	//	//::MessageBox(NULL, "WM_INITDIALOG", "WM_INITDIALOG", 0);
 	//	g_hEditWnd = ::GetDlgItem(_hWnd, GetDlgCtrlID(_hWndEDIT) );
 	//	g_pOldProc = (WNDPROC)(LONG_PTR)::GetWindowLong(g_hEditWnd, GWLP_WNDPROC);
@@ -1063,6 +1072,7 @@ LRESULT CALLBACK CCommandWindow::_WndProc(HWND hWnd, UINT message, WPARAM wParam
     switch (message)
     {
 	case  WM_PAINT:
+
 		//--------------------------------------------------------------------------------------------
 		HDC hdc; //设备环境句柄
 		HFONT hFont;
@@ -1101,7 +1111,8 @@ LRESULT CALLBACK CCommandWindow::_WndProc(HWND hWnd, UINT message, WPARAM wParam
 		);
 		EndPaint(hWnd, &ps);
 		//--------------------------------------------------------------------------------------------
-  
+		break;
+
     case WM_DEVICECHANGE:
         //::MessageBox(NULL, TEXT("Device change"), TEXT("Device change"), 0);
         break;
@@ -1114,10 +1125,10 @@ LRESULT CALLBACK CCommandWindow::_WndProc(HWND hWnd, UINT message, WPARAM wParam
 	//	::MessageBox(NULL, "检测到回车消息", "EN_UPDATE：", 0);
 	//	break;
 	//case WM_KEYDOWN://这个WM_KEYDOWN是对应的整个窗体的要退出edit焦点在窗体上才生效
-	//	if (wParam == VK_RETURN)    // ENTER pressed
-	//	::PostMessage(hWnd, VK_RETURN, wParam, lParam);
-	//	::MessageBox(NULL, "通过WM_KEYDOWN检测到回车消息", "WM_KEYDOWN", 0);
-	//	break;
+		//if (wParam == VK_RETURN)    // ENTER pressed
+		//::PostMessage(hWnd, WM_KEYDOWN, wParam, lParam);
+		//::MessageBox(NULL, "通过WM_KEYDOWN检测到回车消息", "WM_KEYDOWN", 0);
+		//break;
 	//case VK_RETURN:
 	//	::PostMessage(hWnd, VK_RETURN, wParam, lParam);
 	//	::MessageBox(NULL, "检测到回车消息", "VK_RETURN", 0);
@@ -1135,9 +1146,11 @@ LRESULT CALLBACK CCommandWindow::_WndProc(HWND hWnd, UINT message, WPARAM wParam
 
     //按钮被点击。
     case WM_COMMAND:
-		::PostMessage(hWnd, BM_CLICK, wParam, lParam);
-		
+		//::PostMessage(hWnd, WM_COMMAND, wParam, lParam);//不行WHY？
+		::PostMessage(hWnd, BM_CLICK, wParam, lParam); 
+		//::MessageBox(NULL, "通过WM_COMMAND检测到回车消息", "WM_COMMAND", 0);
         //::PostMessage(hWnd, WM_TOGGLE_CONNECTED_STATUS, 0, 0);
+		//BM_CLICK消息会模拟按钮单击，按钮会收到WM_LBUTTONDOWN和WM_LBUTTONUP消息，按钮的父窗口会收到BN_CLICKED通知消息。
 		//BM_CLICK是其他窗口发送给按钮控件的消息，让按钮执行点击操作，可以模拟按钮点击；
 		//BN_CLICK是当按钮被点击时，按钮控件发送给按钮控件的父窗口的，告诉父窗口我被点击了。
         break;
